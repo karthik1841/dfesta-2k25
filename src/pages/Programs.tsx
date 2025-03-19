@@ -1,43 +1,32 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Clock, Users, Star, Video, Play } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link, useNavigate } from 'react-router-dom';
-import { collection, getDocs, addDoc } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
+import { Link } from 'react-router-dom';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import toast from 'react-hot-toast';
 
+interface Course {
+  id: string;
+  imageUrl: string;
+  title: string;
+  category: string;
+  description: string;
+}
+
 export default function Programs() {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedVideo, setSelectedVideo] = useState(null);
-  const navigate = useNavigate();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, 'programs'));
-        const enrollmentsSnapshot = await getDocs(collection(db, 'enrollments'));
-        const ratingsSnapshot = await getDocs(collection(db, 'ratings'));
-
-        const enrollments = enrollmentsSnapshot.docs.map(doc => doc.data());
-        const ratings = ratingsSnapshot.docs.map(doc => doc.data());
-
-        const coursesData = querySnapshot.docs.map(doc => {
-          const courseId = doc.id;
-          const studentCount = enrollments.filter(e => e.courseId === courseId).length;
-          const courseRatings = ratings.filter(r => r.courseId === courseId);
-          const averageRating = courseRatings.length > 0
-            ? (courseRatings.reduce((acc, curr) => acc + curr.rating, 0) / courseRatings.length).toFixed(1)
-            : 0;
-
-          return {
-            id: courseId,
-            ...doc.data(),
-            students: studentCount,
-            rating: averageRating
-          };
-        });
+        const coursesData: Course[] = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Course[];
 
         setCourses(coursesData);
       } catch (error) {
@@ -50,115 +39,6 @@ export default function Programs() {
 
     fetchCourses();
   }, []);
-
-  const fetchVideoUrl = async (courseId) => {
-    // Placeholder: Implement this based on how videos are stored
-    // For now, assuming videoContent[0].url is available in the program data
-    const course = courses.find(c => c.id === courseId);
-    return course?.videoContent?.[0]?.url || ''; // Default to empty string if no video
-  };
-
-  const handleEnroll = async (courseId) => {
-    try {
-      const user = auth.currentUser;
-      if (!user) {
-        toast.error('Please login to enroll in courses');
-        navigate('/login');
-        return;
-      }
-
-      const enrollmentsRef = collection(db, 'enrollments');
-      const enrollmentQuery = await getDocs(enrollmentsRef);
-      const existingEnrollment = enrollmentQuery.docs.find(
-        doc => doc.data().userId === user.uid && doc.data().courseId === courseId
-      );
-
-      if (existingEnrollment) {
-        toast.error('You are already enrolled in this course');
-        return;
-      }
-
-      await addDoc(collection(db, 'enrollments'), {
-        userId: user.uid,
-        courseId: courseId,
-        enrolledAt: new Date().toISOString(),
-        progress: 0,
-        status: 'active'
-      });
-
-      const videoUrl = await fetchVideoUrl(courseId);
-      const course = courses.find(c => c.id === courseId);
-      setSelectedVideo({
-        url: videoUrl,
-        title: course.videoContent?.[0]?.title || 'Course Video',
-        description: course.videoContent?.[0]?.description || 'Course introduction video',
-        thumbnail: course.image || 'https://via.placeholder.com/150'
-      });
-
-      toast.success('Successfully enrolled in the course!');
-      // navigate('/profile'); // Commented out to show video modal instead
-    } catch (error) {
-      console.error('Error enrolling in course:', error);
-      toast.error('Failed to enroll in course');
-    }
-  };
-
-  const handleRating = async (courseId, rating) => {
-    try {
-      const user = auth.currentUser;
-      if (!user) {
-        toast.error('Please login to rate this course');
-        navigate('/login');
-        return;
-      }
-
-      const ratingsRef = collection(db, 'ratings');
-      const ratingQuery = await getDocs(ratingsRef);
-      const existingRating = ratingQuery.docs.find(
-        doc => doc.data().userId === user.uid && doc.data().courseId === courseId
-      );
-
-      if (existingRating) {
-        toast.error('You have already rated this course');
-        return;
-      }
-
-      await addDoc(collection(db, 'ratings'), {
-        userId: user.uid,
-        courseId: courseId,
-        rating: rating,
-        createdAt: new Date().toISOString()
-      });
-
-      toast.success('Thank you for rating!');
-      window.location.reload();
-    } catch (error) {
-      console.error('Error rating course:', error);
-      toast.error('Failed to submit rating');
-    }
-  };
-
-  const VideoPreviewModal = ({ video, onClose }) => (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-800 rounded-xl max-w-3xl w-full p-6 border border-gray-700">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-white">{video.title}</h3>
-          <Button variant="ghost" className="text-gray-400 hover:text-white" onClick={onClose}>×</Button>
-        </div>
-        <div className="aspect-video rounded-lg overflow-hidden bg-black mb-4">
-          <video
-            src={video.url}
-            controls
-            className="w-full h-full"
-            poster={video.thumbnail}
-          >
-            Your browser does not support the video tag.
-          </video>
-        </div>
-        <p className="text-gray-300">{video.description}</p>
-      </div>
-    </div>
-  );
 
   if (loading) {
     return (
@@ -206,11 +86,6 @@ export default function Programs() {
                   <div className="p-6">
                     <h3 className="text-xl font-bold mb-2 text-white">{course.title}</h3>
                     <p className="text-gray-400 mb-2 line-clamp-2">{course.description}</p>
-                    <div className="space-y-2 text-gray-300 text-sm">
-                     
-                        
-                      
-                    </div>
                     <div className="flex items-center justify-between mt-4">
                       <div className="flex space-x-2">
                         <Link to={`/projects/${course.id}`} state={{ course }}>
@@ -223,10 +98,6 @@ export default function Programs() {
                             <ArrowRight className="ml-2 h-4 w-4" />
                           </Button>
                         </Link>
-                        
-                      </div>
-                      <div className="flex items-center text-orange-400 cursor-pointer">
-                        
                       </div>
                     </div>
                   </div>
@@ -235,13 +106,6 @@ export default function Programs() {
             </div>
           )}
         </motion.div>
-
-        {selectedVideo && (
-          <VideoPreviewModal
-            video={selectedVideo}
-            onClose={() => setSelectedVideo(null)}
-          />
-        )}
       </div>
     </div>
   );

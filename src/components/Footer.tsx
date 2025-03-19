@@ -1,5 +1,5 @@
-import { Facebook, Instagram, Mail, Phone, MapPin, Linkedin } from "lucide-react";
-import logo from "../images/backgound_image.png";
+import { Mail, Phone, MapPin } from "lucide-react";
+
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();

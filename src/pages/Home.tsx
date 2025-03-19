@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, Variants } from 'framer-motion';
-import { ArrowRight, Clock, Star, Globe, Sparkles, Award } from 'lucide-react';
+import { ArrowRight, Globe, Sparkles, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { collection, query, limit, getDocs, orderBy } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 
-import { getAuth } from 'firebase/auth';
 import '../index.css'; // Import the CSS file
 
 // Add types directly in the file
@@ -14,20 +13,11 @@ interface Course {
   id: string;
   title: string;
   description: string;
-  image?: string;
+  imageUrl: string;
   category: string;
-  duration: string;
-  rating?: number;
-  createdAt: string;
 }
 
-interface Blog {
-  id: string;
-  title: string;
-  content: string;
-  image?: string;
-  createdAt: string;
-}
+
 
 // Define animation variants
 const container: Variants = {
@@ -79,8 +69,8 @@ export const SpicedText1 = () => {
     <div className="absolute top-0 left-0 flex items-center justify-start z-[-1] p-4">
       <p className="text-white/25 text-lg font-light">
         <span className="block font-bold text-3xl leading-none text-transparent bg-[url(https://i.ibb.co/RDTnNrT/animated-text-fill.png)] bg-repeat-y bg-clip-text animate-aitf">
-          
-        𝓓'𝓕𝓮𝓼𝓽𝓪
+
+          𝓓'𝓕𝓮𝓼𝓽𝓪
         </span>
       </p>
     </div>
@@ -92,9 +82,8 @@ export const SpicedText1 = () => {
 
 export default function Home() {
   const [featuredCourses, setFeaturedCourses] = useState<Course[]>([]);
-  const [latestBlogs, setLatestBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -103,11 +92,6 @@ export default function Home() {
         const coursesSnapshot = await getDocs(coursesQuery);
         const coursesData = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Course[];
         setFeaturedCourses(coursesData);
-
-        const blogsQuery = query(collection(db, 'blogs'), orderBy('createdAt', 'desc'), limit(2));
-        const blogsSnapshot = await getDocs(blogsQuery);
-        const blogsData = blogsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Blog[];
-        setLatestBlogs(blogsData);
       } catch (error) {
         console.error('Error fetching content:', error);
       } finally {
@@ -120,9 +104,9 @@ export default function Home() {
 
   useEffect(() => {
     const checkLoginStatus = () => {
-      const auth = getAuth();
-      const user = auth.currentUser;
-      setIsLoggedIn(!!user);
+    
+      
+      
     };
     checkLoginStatus();
   }, []);
@@ -206,8 +190,8 @@ export default function Home() {
                     <h3 className="text-lg sm:text-xl font-bold mb-2 text-white">{course.title}</h3>
                     <p className="text-gray-400 mb-4 line-clamp-2">{course.description}</p>
                     <div className="flex items-center justify-between mb-4">
-                      
-                      
+
+
                     </div>
                     <Link to={`projects/${course.id}`}>
                       <Button className="w-full bg-orange-600 hover:bg-orange-500 transition-colors">

@@ -26,16 +26,8 @@ export default function Navbar({ isAdmin }: { isAdmin: boolean }) {
   }, []);
 
   // Auto-close menu when clicking anywhere inside the navbar
-  useEffect(() => {
-    const handleClick = (event) => {
-      if (isOpen && mobileMenuRef.current && mobileMenuRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
-  }, [isOpen]);
+  
+  
 
   const handleSignOut = async () => {
     try {

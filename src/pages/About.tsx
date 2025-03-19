@@ -1,13 +1,11 @@
 import { motion } from 'framer-motion';
-import { Mail, MapPin, Phone, BookOpen, Users, Award } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { db } from '@/lib/firebase';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import {  BookOpen, Users, Award } from 'lucide-react';
+
 import { useState } from 'react';
-import kusuma from "../images/Kusuma.jpeg";
+
 
 export default function About() {
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage ] = useState('');
 
   const stats = [
     { icon: BookOpen, label: 'Projects', value: '20+' },
@@ -22,25 +20,7 @@ export default function About() {
     
   ];
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    const name = event.target.name.value;
-    const email = event.target.email.value;
-    const message = event.target.message.value;
-
-    try {
-      await addDoc(collection(db, 'contacts'), {
-        name,
-        email,
-        message,
-        timestamp: Timestamp.fromDate(new Date())
-      });
-      setSuccessMessage('Message sent successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (error) {
-      console.error('Error sending message: ', error);
-    }
-  };
+  
 
 
   return (
@@ -81,22 +61,7 @@ export default function About() {
               ))}
             </div>
           </div>
-          <div className="bg-gray-600 rounded-xl shadow-lg p-8 border border-gray-800">
-            <h2 className="text-3xl font-bold mb-8 text-center text-orange-400">Contact Us</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <div className="flex items-center space-x-4"><MapPin className="w-6 h-6 text-orange-400" /><span >MITS,Madanapalle, AP 517325</span></div>
-                <div className="flex items-center space-x-4"><Phone className="w-6 h-6 text-orange-400" /><span>+91 6302159229</span></div>
-                <div className="flex items-center space-x-4"><Mail className="w-6 h-6 text-orange-400" /><span>Dfesta@gmail.com</span></div>
-              </div>
-              <form className="space-y-4" onSubmit={handleSubmit}>
-                <input type="text" name="name" placeholder="Your Name" className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors duration-300" required />
-                <input type="email" name="email" placeholder="Your Email" className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors duration-300" required />
-                <textarea name="message" placeholder="Your Message" rows={4} className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors duration-300" required />
-                <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-400 text-gray-900 font-bold transition-colors duration-300">Send Message</Button>
-              </form>
-            </div>
-          </div>
+          
         </motion.div>
       </div>
     </div>
