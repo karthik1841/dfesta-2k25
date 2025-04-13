@@ -44,7 +44,7 @@ export default function CourseDetail() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Course not found</h2>
+          <h2 className="text-2xl font-bold mb-4">event not found</h2>
           <Button
             onClick={() => navigate("/programs")}
             className="bg-orange-500 hover:bg-orange-600 text-gray-900"
@@ -109,7 +109,7 @@ export default function CourseDetail() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <h2 className="text-2xl font-bold mb-4 text-orange-400">About This Course</h2>
+                  <h2 className="text-2xl font-bold mb-4 text-orange-400">About This Event</h2>
                   <p className="text-gray-300 mb-6">{course.aboutCourse || course.description}</p>
                   <p className="text-gray-300 mb-6">Price: {course.price}</p>
                   <p className="text-gray-300 mb-6">Category: {course.category}</p>
@@ -126,13 +126,13 @@ export default function CourseDetail() {
                 transition={{ delay: 0.4 }}
               >
                 <h3 className="text-xl font-semibold text-orange-400 mb-4">Register Now</h3>
-                <p className="text-gray-300 mb-6">Join this Course</p>
+                <p className="text-gray-300 mb-6">Join this event</p>
                 <Button
                   className="w-full bg-orange-500 hover:bg-orange-600 text-gray-900"
                   onClick={() => window.open(course.websiteLink, "_blank", "noopener,noreferrer")}
                   disabled={!course.websiteLink}
                 >
-                  Register for Course
+                  Register for event
                 </Button>
               </motion.div>
             </div>

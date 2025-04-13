@@ -5,8 +5,6 @@ import { getStorage } from 'firebase/storage';
 import { RecaptchaVerifier } from 'firebase/auth';
 
 
-// Import the functions you need from the SDKs you need
-
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBRe-alFvroLc2pDtm43agABkXprTi63Vg",
@@ -14,10 +12,8 @@ const firebaseConfig = {
   projectId: "team-leader-c82cc",
   storageBucket: "team-leader-c82cc.firebasestorage.app",
   messagingSenderId: "564896336771",
-  appId: "1:564896336771:web:a1e9a7c2a765bcc94104b6",
-
+  appId: "1:564896336771:web:a1e9a7c2a765bcc94104b6"
 };
-
 
 
 export const app = initializeApp(firebaseConfig);

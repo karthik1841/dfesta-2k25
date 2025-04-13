@@ -1,14 +1,22 @@
 import { useState, useEffect } from 'react';
 import { motion, Variants } from 'framer-motion';
-import { ArrowRight, Globe, Sparkles, Award } from 'lucide-react';
+import { ArrowRight, ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { collection, query, limit, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, limit, getDocs, orderBy, onSnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import jk1Image from '../images/jk1.jpg';
+import jk3Image from "../images/jk3.jpg";
+import jk4Image from "../images/jk4.jpg";
+import jk5Image from "../images/jk5.jpg";
+import jk6Image from "../images/jk6.jpg";
+import jk8Image from "../images/jk8.jpg";
+import jk9Image from "../images/jk9.jpg";
+import jk10Image from "../images/jk10.jpg";
 
-import '../index.css'; // Import the CSS file
+import '../index.css';
 
-// Add types directly in the file
+// Types
 interface Course {
   id: string;
   title: string;
@@ -17,9 +25,13 @@ interface Course {
   category: string;
 }
 
+interface Countdown {
+  id: string;
+  date: string;
+  createdAt?: string;
+}
 
-
-// Define animation variants
+// Animation variants (unchanged)
 const container: Variants = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.2 } }
@@ -30,46 +42,146 @@ const item: Variants = {
   show: { opacity: 1, y: 0 }
 };
 
-// Define CardSection props interface
-interface CardSectionProps {
-  icon: React.ElementType;
-  title: string;
-  description: string;
-}
+const countdownItemVariants: Variants = {
+  animate: {
+    y: [0, -5, 0],
+    transition: {
+      duration: 0.5,
+      repeat: Infinity,
+      ease: "easeInOut"
+    }
+  }
+};
 
-const CardSection: React.FC<CardSectionProps> = ({ icon: Icon, title, description }) => (
-  <motion.div
-    variants={item}
-    whileHover={{ y: -10 }}
-    className="bg-black/95-1000 rounded-xl p-6 shadow-xl border border-gray-700 hover:border-gray-600 transition-colors duration-300"
-  >
-    <Icon className="w-10 h-10 text-orange-600 mb-4" />
-    <h3 className="text-xl font-bold mb-2 text-white">{title}</h3>
-    <p className="text-gray-400">{description}</p>
-  </motion.div>
-);
+// CountdownTimer Component (unchanged)
+const CountdownTimer = () => {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
-// New SpicedText component with CSS animation
-export const SpicedText = () => {
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'countdowns'), (snapshot) => {
+      if (snapshot.docs.length > 0) {
+        const latestCountdown = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() } as Countdown))
+          .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())[0];
+        
+        const updateClock = () => {
+          const now = new Date();
+          const eventDate = new Date(latestCountdown.date);
+          const diffMs = eventDate.getTime() - now.getTime();
+
+          if (diffMs <= 0) {
+            setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+            return;
+          }
+
+          const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+          
+          setTimeLeft({ days, hours, minutes, seconds });
+        };
+
+        updateClock();
+        const timeinterval = setInterval(updateClock, 1000);
+        return () => clearInterval(timeinterval);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
-    <div className="absolute inset-0 flex items-center justify-center z-[-1]">
-      <p className="text-transform-uppercase letter-spacing-wide inline-block border-4 border-double border-white/25 border-t-4 border-b-4 py-6 px-0 w-[60em] text-white/25 font-neuton text-base text-center">
-        Data Science
-        <span className="block font-oswald font-bold text-6xl leading-none py-2 text-transparent bg-[url(https://i.ibb.co/RDTnNrT/animated-text-fill.png)] bg-repeat-y bg-clip-text animate-aitf text-shadow-glow transform-gpu backface-hidden">
-          D'festa
-        </span>
-        —Data will talk to you if you're willing to listen—
-      </p>
+    <div className="relative flex flex-col items-center gap-4 w-full px-4">
+      <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+        <motion.div 
+          variants={countdownItemVariants}
+          animate="animate"
+          className="bg-gray-900/50 backdrop-blur-sm px-3 py-2 sm:px-4 sm:py-2 rounded border border-orange-500/30 shadow-[0_0_15px_rgba(255,147,0,0.3)] min-w-[70px] text-center"
+        >
+          <span className="text-orange-500 text-lg sm:text-xl font-bold">{String(timeLeft.days).padStart(2, '0')}</span>
+          <div className="text-white/50 text-xs sm:text-sm">Days</div>
+        </motion.div>
+        <motion.div 
+          variants={countdownItemVariants}
+          animate="animate"
+          className="bg-gray-900/50 backdrop-blur-sm px-3 py-2 sm:px-4 sm:py-2 rounded border border-orange-500/30 shadow-[0_0_15px_rgba(255,147,0,0.3)] min-w-[70px] text-center"
+        >
+          <span className="text-orange-500 text-lg sm:text-xl font-bold">{String(timeLeft.hours).padStart(2, '0')}</span>
+          <div className="text-white/50 text-xs sm:text-sm">Hours</div>
+        </motion.div>
+        <motion.div 
+          variants={countdownItemVariants}
+          animate="animate"
+          className="bg-gray-900/50 backdrop-blur-sm px-3 py-2 sm:px-4 sm:py-2 rounded border border-orange-500/30 shadow-[0_0_15px_rgba(255,147,0,0.3)] min-w-[70px] text-center"
+        >
+          <span className="text-orange-500 text-lg sm:text-xl font-bold">{String(timeLeft.minutes).padStart(2, '0')}</span>
+          <div className="text-white/50 text-xs sm:text-sm">Minutes</div>
+        </motion.div>
+        <motion.div 
+          variants={countdownItemVariants}
+          animate="animate"
+          className="bg-gray-900/50 backdrop-blur-sm px-3 py-2 sm:px-4 sm:py-2 rounded border border-orange-500/30 shadow-[0_0_15px_rgba(255,147,0,0.3)] min-w-[70px] text-center"
+        >
+          <span className="text-orange-500 text-lg sm:text-xl font-bold">{String(timeLeft.seconds).padStart(2, '0')}</span>
+          <div className="text-white/50 text-xs sm:text-sm">Seconds</div>
+        </motion.div>
+      </div>
     </div>
   );
 };
-//𝓓'𝓕𝓮𝓼𝓽𝓪
+
+// SpicedText Component (unchanged)
+export const SpicedText = ({ targetDate }: { targetDate: string }) => {
+  const currentYear = new Date().getUTCFullYear();
+  
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    const month = monthNames[date.getMonth()];
+    const day = date.getDate();
+    const suffix = 
+      day % 10 === 1 && day !== 11 ? "st" :
+      day % 10 === 2 && day !== 12 ? "nd" :
+      day % 10 === 3 && day !== 13 ? "rd" : "th";
+    return `${month} ${day}${suffix}`;
+  };
+
+  return (
+    <div className="relative flex flex-col items-center justify-center gap-8 w-full">
+      <CountdownTimer />
+      <br/>
+      <div className="flex items-center justify-center z-[0] w-full px-4 -mt-5">
+        <p className="text-transform-uppercase letter-spacing-wide inline-block border-4 border-double border-white/30 border-t-4 border-b-4 py-6 px-0 w-full max-w-[60em] text-white/30 font-neuton text-sm sm:text-base text-center">
+          Data Science
+          <span className="block font-oswald font-bold text-4xl sm:text-6xl leading-none py-2 text-transparent bg-[url(https://i.ibb.co/RDTnNrT/animated-text-fill.png)] bg-repeat-y bg-clip-text animate-aitf text-shadow-glow transform-gpu backface-hidden">
+            D'festa {currentYear}
+          </span>
+          —Data will talk to you if you're willing to listen—
+        </p>
+      </div>
+      {targetDate && (
+        <p className="text-white font-bold text-[15px]">
+          <br />
+          <br />
+          On 
+          <br />
+          <span className="text-orange-500 text-[30px]">{formatDate(targetDate)}</span>
+        </p>
+      )}
+    </div>
+  );
+};
+
+// SpicedText1 Component (unchanged)
 export const SpicedText1 = () => {
   return (
     <div className="absolute top-0 left-0 flex items-center justify-start z-[-1] p-4">
       <p className="text-white/25 text-lg font-light">
         <span className="block font-bold text-3xl leading-none text-transparent bg-[url(https://i.ibb.co/RDTnNrT/animated-text-fill.png)] bg-repeat-y bg-clip-text animate-aitf">
-
           𝓓'𝓕𝓮𝓼𝓽𝓪
         </span>
       </p>
@@ -77,20 +189,113 @@ export const SpicedText1 = () => {
   );
 };
 
+// ImageSlideshow Component (unchanged)
+const ImageSlideshow = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  
+  const slides = [
+    jk1Image,
+    jk3Image,
+    jk4Image,
+    jk5Image,
+    jk6Image,
+    jk8Image,
+    jk9Image,
+    jk10Image
+  ];
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 3000);
+    
+    return () => clearInterval(timer);
+  }, [slides.length]);
 
+  return (
+    <motion.div
+      variants={container}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true }}
+      className="relative py-10 sm:py-20 bg-black/100"
+    >
+      <div className="max-w-full sm:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 sm:mb-4">Our Memories</h2>
+          <p className="text-gray-400 text-sm sm:text-base md:text-lg">An Adventurous Journey with D'Festa</p>
+        </div>
+        
+        <div className="relative w-full max-w-full sm:max-w-3xl mx-auto">
+          <div className="overflow-hidden box-shadow rounded-xl shadow-xl aspect-w-16 aspect-h-9 sm:aspect-h-10">
+            {slides.map((slide, index) => (
+              <motion.img
+                key={index}
+                src={slide}
+                alt={`Slide ${index + 1}`}
+                className="w-full h-auto sm:h-[300px] md:h-[400px] object-contain sm:object-cover shadow-lg"
+                initial={{ opacity: 0 }}
+                animate={{ 
+                  opacity: currentSlide === index ? 1 : 0,
+                  transition: { duration: 0.5 }
+                }}
+                style={{ position: currentSlide === index ? 'relative' : 'absolute', top: 0 }}
+              />
+            ))}
+          </div>
+          <div className="flex justify-center gap-2 mt-4">
+            {slides.map((_, index) => (
+              <motion.div
+                key={index}
+                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full cursor-pointer ${
+                  currentSlide === index ? 'bg-orange-500' : 'bg-gray-500'
+                }`}
+                whileHover={{ scale: 1.2 }}
+                onClick={() => setCurrentSlide(index)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
+// Home Component with Fixed Type Handling
 export default function Home() {
   const [featuredCourses, setFeaturedCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  
+  const [targetDate, setTargetDate] = useState<string>('');
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'countdowns'), (snapshot) => {
+      if (snapshot.docs.length > 0) {
+        const latestCountdown = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() } as Countdown))
+          .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())[0];
+        
+        setTargetDate(latestCountdown.date);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const fetchContent = async () => {
       try {
         const coursesQuery = query(collection(db, 'programs'), orderBy('createdAt', 'desc'), limit(3));
         const coursesSnapshot = await getDocs(coursesQuery);
-        const coursesData = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Course[];
+        const coursesData: Course[] = coursesSnapshot.docs.map((doc) => {
+          const data = doc.data() as DocumentData; // Explicitly type as DocumentData
+          return {
+            id: doc.id,
+            title: data.title || '', // Provide fallback if field is missing
+            description: data.description || '',
+            imageUrl: data.imageUrl || '',
+            category: data.category || '',
+          };
+        });
         setFeaturedCourses(coursesData);
       } catch (error) {
         console.error('Error fetching content:', error);
@@ -104,9 +309,7 @@ export default function Home() {
 
   useEffect(() => {
     const checkLoginStatus = () => {
-    
-      
-      
+      // Login status check logic here if needed
     };
     checkLoginStatus();
   }, []);
@@ -122,33 +325,22 @@ export default function Home() {
           className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white w-full"
         >
           <div className="max-w-3xl mx-auto text-center">
-            <SpicedText />
+            <SpicedText targetDate={targetDate} />
           </div>
         </motion.div>
+        
+        <div className="absolute bottom-2 right-2 flex items-center text-sm font-medium">
+          <p className="text-orange-500">
+            Scroll Down
+            <ArrowDown className="ml-1 w-4 h-4 inline" />
+          </p>
+        </div>
       </section>
 
-      {/* Services Section */}
-      <motion.div
-        variants={container}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true }}
-        className="relative py-20 bg-black/100"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-4">Our Services</h2>
-            <p className="text-gray-400 text-lg">Advanced data solutions for modern businesses</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <CardSection icon={Globe} title="Data Visualization" description="Transform complex data into intuitive interactive dashboards and visual insights for better decision-making." />
-            <CardSection icon={Sparkles} title="Machine Learning" description="Custom ML solutions including predictive analytics, pattern recognition, and automated decision systems." />
-            <CardSection icon={Award} title="Data Analytics" description="Comprehensive data analysis services including statistical modeling, trend analysis, and business intelligence." />
-          </div>
-        </div>
-      </motion.div>
+      {/* Image Slideshow Section */}
+      <ImageSlideshow />
 
-      {/* Projects Section - Always shown */}
+      {/* Events Section */}
       <section className="py-20 bg-gray-60">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
           <div className="text-center mb-12">
@@ -189,10 +381,6 @@ export default function Home() {
                   <div className="p-5 sm:p-6">
                     <h3 className="text-lg sm:text-xl font-bold mb-2 text-white">{course.title}</h3>
                     <p className="text-gray-400 mb-4 line-clamp-2">{course.description}</p>
-                    <div className="flex items-center justify-between mb-4">
-
-
-                    </div>
                     <Link to={`projects/${course.id}`}>
                       <Button className="w-full bg-orange-600 hover:bg-orange-500 transition-colors">
                         View Event <ArrowRight className="ml-2 h-4 w-4" />

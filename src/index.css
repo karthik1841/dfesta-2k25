@@ -13,6 +13,21 @@
 
 .font-oswald {
   font-family: 'Oswald', sans-serif;
+
+
+}
+
+
+.min-h-screen {
+    min-height: 93vh;
+}
+/* index.css */
+.text-shadow-glow {
+  text-shadow: 
+    0 0 10px rgba(255, 149, 0, 0.8),  /* Inner orange glow */
+    0 0 20px rgba(110, 110, 110, 0.6),  /* Mid-layer glow */
+    0 0 40px rgba(48, 48, 47, 0.4),  /* Outer glow */
+    0 0 60px rgba(10, 10, 10, 0.2);  /* Faint extended glow */
 }
 
 .text-transform-uppercase {
@@ -56,3 +71,5 @@
   0% { background-position: 0% 50%; }
   100% { background-position: 100% 50%; }
 }
+/* styles.css */
+/* styles.css */

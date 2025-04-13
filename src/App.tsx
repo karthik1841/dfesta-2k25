@@ -3,47 +3,61 @@ import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
-import Programs from './pages/Programs'; // ✅ Ensure it's imported
+import Programs from './pages/Programs';
 import Blogs from './pages/Blogs';
 import About from './pages/About';
 import CourseDetail from './pages/CourseDetail';
 import BlogDetail from './pages/BlogDetail';
 import AdminDashboard from './pages/AdminDashboard';
 import Profile from './pages/Profile';
-import NotFound from './pages/NotFound';
+import CourseDetails2 from './pages/CourseDetails2';
+
 import { useEffect, useState } from 'react';
 import { auth, db } from './lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import CourseDetails2 from './pages/CourseDetails2';
+import { User } from 'firebase/auth';
 
 function App() {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      const unsubscribe = auth.onAuthStateChanged(async (user) => {
-        try {
-          if (user) {
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userDocRef);
-            const userData = userDoc.exists() ? userDoc.data() : null;
-            console.log('User Data:', userData); // Debug: Check user data
-            setIsAdmin(userData?.email === 'dfesta2k25@gmail.com');
-          } else {
-            setIsAdmin(false);
-            console.log('No user logged in'); // Debug: Confirm no user
-          }
-        } catch (error) {
-          console.error('Error checking admin status:', error);
-          setIsAdmin(false); // Default to non-admin on error
+    const unsubscribe = auth.onAuthStateChanged(async (user: User | null) => {
+      try {
+        if (user) {
+          console.log('Logged in user:', user);
+
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          const userData = userDoc.exists() ? userDoc.data() : null;
+
+          const isUserAdmin =
+            userData?.role?.toLowerCase?.() === 'admin' ||
+            user.email?.toLowerCase() === 'dfesta2k25@gmail.com';
+
+          setIsAdmin(isUserAdmin);
+          console.log('Is Admin:', isUserAdmin);
+        } else {
+          setIsAdmin(false);
         }
-      });
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      } finally {
+        setLoading(false);
+      }
+    });
 
-      return () => unsubscribe();
-    };
+    return () => unsubscribe();
+  }, []);
 
-    checkAdmin();
-  }, []); // Runs only once on mount
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center text-lg">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
@@ -52,7 +66,7 @@ function App() {
         <div className="flex-grow pt-16">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/programs" element={<Programs />} /> {/* ✅ Fixed: Route added */}
+            <Route path="/programs" element={<Programs />} />
             <Route path="/projects" element={<CourseDetail />} />
             <Route path="/projects/:id" element={<CourseDetail />} />
             <Route path="/services" element={<Blogs />} />
@@ -64,8 +78,6 @@ function App() {
             <Route path="*" element={<NotFound />} />
 =======
             <Route path="/course-details-2" element={<CourseDetails2 />} />
-            
-            {/* Admin Route Handling */}
             <Route
               path="/admin"
               element={isAdmin ? <AdminDashboard /> : <div>Not Authorized</div>}
