@@ -73,16 +73,12 @@ function App() {
             <Route path="/services/:id" element={<BlogDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/profile" element={<Profile />} />
-<<<<<<< HEAD
-            {isAdmin && <Route path="/admin" element={<AdminDashboard />} />}
-            <Route path="*" element={<NotFound />} />
-=======
+
             <Route path="/course-details-2" element={<CourseDetails2 />} />
             <Route
               path="/admin"
               element={isAdmin ? <AdminDashboard /> : <div>Not Authorized</div>}
             />
->>>>>>> 734e508 (ds)
           </Routes>
         </div>
         <Footer />
