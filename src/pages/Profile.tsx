@@ -114,7 +114,7 @@ export default function Profile() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray"></div>
       </div>
     );
   }
@@ -134,7 +134,7 @@ export default function Profile() {
     <div className="py-12">
       {isOffline && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+          <div className="bg-orange-50 border-l-4 border-orange-400 p-4">
             <div className="flex items-center">
               <WifiOff className="h-5 w-5 text-yellow-400 mr-2" />
               <p className="text-sm text-yellow-700">

@@ -4,15 +4,21 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { RecaptchaVerifier } from 'firebase/auth';
 
+
+// Import the functions you need from the SDKs you need
+
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCXGcJYwXMjny3mp--zMfMyCOFeGmJP0VI",
-  authDomain: "forefight-era.firebaseapp.com",
-  projectId: "forefight-era",
-  storageBucket: "forefight-era.firebasestorage.app",
-  messagingSenderId: "978450259117",
-  appId: "1:978450259117:web:11c6fe5c83bfec6f613a24",
-  measurementId: "G-2R4YDZYCWT"
+  apiKey: "AIzaSyBRe-alFvroLc2pDtm43agABkXprTi63Vg",
+  authDomain: "team-leader-c82cc.firebaseapp.com",
+  projectId: "team-leader-c82cc",
+  storageBucket: "team-leader-c82cc.firebasestorage.app",
+  messagingSenderId: "564896336771",
+  appId: "1:564896336771:web:a1e9a7c2a765bcc94104b6",
+
 };
+
+
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);

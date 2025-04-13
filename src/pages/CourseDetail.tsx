@@ -1,105 +1,129 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Clock, Users, Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Course } from './types';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { Courses } from "./types";
 
 export default function CourseDetail() {
-  const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { course: initialCourse } = location.state || {};
+  const initialCourse = location.state?.course || null;
+
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('about');
-  const [course, setCourse] = useState<Course | null>(null);
+  const [activeTab, setActiveTab] = useState("about");
+  const [course, setCourse] = useState<Courses | null>(initialCourse);
 
   useEffect(() => {
     if (!initialCourse) {
-      navigate('/programs');
-      return;
+      navigate("/programs");
+    } else {
+      setCourse(initialCourse);
+      setLoading(false);
     }
-    setLoading(false);
-    setCourse(initialCourse);
   }, [initialCourse, navigate]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
       </div>
     );
   }
 
   if (!course) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Course not found</h2>
-          <Button onClick={() => navigate('/programs')}>Return to Programs</Button>
+          <h2 className="text-2xl font-bold mb-4">Event not found</h2>
+          <Button
+            onClick={() => navigate("/programs")}
+            className="bg-orange-500 hover:bg-orange-600 text-gray-900"
+          >
+            Return to Event
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="py-12 bg-gray-900 min-h-screen">
+      <div className="max-w-6xl lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          {/* Course Header */}
-          <div className="relative h-96 rounded-xl overflow-hidden mb-8">
+          {/* Title Box - Now Full Width on Laptop */}
+          <motion.div
+            className="relative z-10 bg-gray-800 text-white rounded-xl shadow-lg p-6 mb-4 
+                      max-w-4xl lg:max-w-full mx-auto lg:w-full text-center border border-orange-500"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-3xl md:text-4xl font-bold">{course.title}</h1>
+          </motion.div>
+
+          {/* Course Image - Now Wider in Laptop View */}
+          <div className="relative h-80 md:h-[450px] lg:h-[500px] xl:h-[550px] rounded-xl overflow-hidden mb-8">
             <img
-              src={course.image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085"}
+              src={course.imageUrl}
               alt={course.title}
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-black/50 flex items-center">
-              <div className="max-w-3xl mx-auto text-center text-white p-8">
-                <h1 className="text-4xl font-bold mb-4">{course.title}</h1>
-                <div className="flex justify-center items-center space-x-6">
-                  <div className="flex items-center">
-                    <Star className="w-5 h-5 mr-2 text-yellow-400" />
-                    <span>{course.rating || 4.5}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* Navigation Tabs */}
           <div className="flex space-x-4 mb-8 overflow-x-auto">
             <Button
-              variant={activeTab === 'about' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('about')}
+              variant={activeTab === "about" ? "default" : "ghost"}
+              onClick={() => setActiveTab("about")}
+              className={`${activeTab === "about"
+                  ? "bg-orange-500 text-gray-900 hover:bg-orange-600"
+                  : "text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700"
+                }`}
             >
               About
             </Button>
-            {/* Removed Course Content, Assignments, Resources, Python IDE, and Course Assistant tabs */}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
-              {activeTab === 'about' && (
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold mb-4">About This Course</h2>
-                  <div className="prose max-w-none">
-                    <p className="text-gray-600 mb-6">{course.aboutCourse || course.description}</p>
-                    <h3 className="text-sl text-blue-900 font-semibold mb-3">
-                      <a href={course.websiteLink} target="_blank" rel="noopener noreferrer">
-                        {course.websiteLink}
-                      </a>
-                    </h3>
-                  </div>
-                </div>
+              {activeTab === "about" && (
+                <motion.div
+                  className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700
+                            hover:border-orange-500/50 transition-colors duration-300"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <h2 className="text-2xl font-bold mb-4 text-orange-400">About This Event</h2>
+                  <p className="text-gray-300 mb-6">{course.aboutCourse || course.description}</p>
+                  <p className="text-gray-300 mb-6">Price: {course.price}</p>
+                  <p className="text-gray-300 mb-6">Category: {course.category}</p>
+                </motion.div>
               )}
-              {/* Removed content for Course Content, Assignments, Resources, Python IDE, and Course Assistant */}
             </div>
-            {/* Sidebar */}
+
+            {/* Sidebar with Registration Button */}
+            <div className="lg:col-span-1">
+              <motion.div
+                className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700
+                          sticky top-4 hover:border-orange-500/50 transition-colors duration-300"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <h3 className="text-xl font-semibold text-orange-400 mb-4">Register Now</h3>
+                <p className="text-gray-300 mb-6">Join this Event..</p>
+                <Button
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-gray-900"
+                  onClick={() => window.open(course.websiteLink, "_blank", "noopener,noreferrer")}
+                >
+                  Register for Event
+                </Button>
+              </motion.div>
+            </div>
           </div>
         </motion.div>
       </div>

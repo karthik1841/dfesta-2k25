@@ -1,3 +1,58 @@
+/* index.css */
+@import url('https://fonts.googleapis.com/css2?family=Neuton:wght@400&family=Oswald:wght@700&display=swap');
+
+/* Tailwind directives must come after @import */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom styles for SpicedText */
+.font-neuton {
+  font-family: 'Neuton', serif;
+}
+
+.font-oswald {
+  font-family: 'Oswald', sans-serif;
+}
+
+.text-transform-uppercase {
+  text-transform: uppercase;
+}
+
+.letter-spacing-wide {
+  letter-spacing: 0.5em;
+}
+
+.text-shadow-glow {
+  text-shadow: 0 0 80px rgba(255, 255, 255, 0.5);
+}
+
+.bg-clip-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.transform-gpu {
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+
+.backface-hidden {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.animate-aitf {
+  -webkit-text-fill-color: transparent;
+  animation: aitf 80s linear infinite;
+}
+
+@-webkit-keyframes aitf {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+@keyframes aitf {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}

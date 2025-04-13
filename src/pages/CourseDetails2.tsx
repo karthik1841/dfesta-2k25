@@ -131,11 +131,11 @@ export default function CourseDetails2() {
     if (!video || !video.url) return null; // Ensure video URL is available
 
     return (
-      <div className="bg-black rounded-lg overflow-hidden">
+      <div className="bg-gray-800 rounded-lg overflow-hidden">
         <select
           value={quality}
           onChange={(e) => setQuality(e.target.value)}
-          className="mb-2 p-2 border rounded"
+          className="mb-2 p-2 bg-gray-700 text-white border border-gray-600 rounded"
         >
           <option value="360p">360p</option>
           <option value="480p">480p</option>
@@ -151,8 +151,8 @@ export default function CourseDetails2() {
           Your browser does not support the video tag.
         </video>
         <div className="p-4">
-          <h3 className="text-lg font-semibold mb-2">{video.title}</h3>
-          <p className="text-gray-600">{video.description}</p>
+          <h3 className="text-lg font-semibold mb-2 text-white">{video.title}</h3>
+          <p className="text-gray-400">{video.description}</p>
         </div>
       </div>
     );
@@ -160,25 +160,30 @@ export default function CourseDetails2() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
       </div>
     );
   }
 
   if (!course) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Course not found</h2>
-          <Button onClick={() => navigate('/programs')}>Return to Programs</Button>
+          <Button 
+            onClick={() => navigate('/programs')}
+            className="bg-yellow-500 hover:bg-yellow-600 text-gray-900"
+          >
+            Return to Programs
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="py-12">
+    <div className="py-12 bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -192,19 +197,19 @@ export default function CourseDetails2() {
               alt={course.title}
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-black/50 flex items-center">
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent flex items-center">
               <div className="max-w-3xl mx-auto text-center text-white p-8">
                 <h1 className="text-4xl font-bold mb-4">{course.title}</h1>
                 <div className="flex justify-center items-center space-x-6">
-                  <div className="flex items-center">
-                    <Clock className="w-5 h-5 mr-2" />
+                  <div className="flex items-center text-gray-300">
+                    <Clock className="w-5 h-5 mr-2 text-yellow-400" />
                     <span>{course.duration}</span>
                   </div>
-                  <div className="flex items-center">
-                    <Users className="w-5 h-5 mr-2" />
+                  <div className="flex items-center text-gray-300">
+                    <Users className="w-5 h-5 mr-2 text-yellow-400" />
                     <span>{course.students || 0} students</span>
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex items-center text-gray-300">
                     <Star className="w-5 h-5 mr-2 text-yellow-400" />
                     <span>{course.rating || 4.5}</span>
                   </div>
@@ -215,87 +220,65 @@ export default function CourseDetails2() {
 
           {/* Navigation Tabs */}
           <div className="flex space-x-4 mb-8 overflow-x-auto">
-            <Button
-              variant={activeTab === 'about' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('about')}
-            >
-              About
-            </Button>
-            <Button
-              variant={activeTab === 'content' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('content')}
-            >
-              Course Content
-            </Button>
-            <Button
-              variant={activeTab === 'assignments' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('assignments')}
-            >
-              Assignments
-            </Button>
-            <Button
-              variant={activeTab === 'resources' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('resources')}
-            >
-              Resources
-            </Button>
-            <Button
-              variant={activeTab === 'ide' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('ide')}
-            >
-              Python IDE
-            </Button>
-            <Button
-              variant={activeTab === 'chat' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('chat')}
-            >
-              Course Assistant
-            </Button>
+            {['about', 'content', 'assignments', 'resources', 'ide', 'chat'].map((tab) => (
+              <Button
+                key={tab}
+                variant={activeTab === tab ? 'default' : 'ghost'}
+                onClick={() => setActiveTab(tab)}
+                className={`${
+                  activeTab === tab 
+                    ? 'bg-yellow-500 text-gray-900 hover:bg-yellow-600' 
+                    : 'text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700'
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </Button>
+            ))}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
               {activeTab === 'about' && (
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold mb-4">About This Course</h2>
-                  <div className="prose max-w-none">
-                    <p className="text-gray-600 mb-6">{course.aboutCourse || course.description}</p>
-                    
-                    <h3 className="text-xl font-semibold mb-3">Prerequisites</h3>
-                    <p className="text-gray-600 mb-6">{course.prerequisites}</p>
-                    
-                    <h3 className="text-xl font-semibold mb-3">Learning Objectives</h3>
-                    <p className="text-gray-600">{course.learningObjectives}</p>
+                <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+                  <h2 className="text-2xl font-bold mb-4 text-yellow-400">About This Course</h2>
+                  <div className="prose prose-invert max-w-none">
+                    <p className="text-gray-300 mb-6">{course.aboutCourse || course.description}</p>
+                    <h3 className="text-xl font-semibold mb-3 text-white">Prerequisites</h3>
+                    <p className="text-gray-300 mb-6">{course.prerequisites}</p>
+                    <h3 className="text-xl font-semibold mb-3 text-white">Learning Objectives</h3>
+                    <p className="text-gray-300">{course.learningObjectives}</p>
                   </div>
                 </div>
               )}
 
               {activeTab === 'content' && (
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold mb-4">Course Content</h2>
+                <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+                  <h2 className="text-2xl font-bold mb-4 text-yellow-400">Course Content</h2>
                   
                   {/* Document Links */}
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-3">Course Materials</h3>
+                    <h3 className="text-lg font-semibold mb-3 text-white">Course Materials</h3>
                     <div className="space-y-3">
                       {documents.map((doc) => (
                         <div key={doc.id} className="mb-4">
                           <button
                             onClick={() => setSelectedDoc(selectedDoc === doc.id ? null : doc.id)}
-                            className="flex items-center p-3 border rounded-lg hover:bg-gray-50 w-full"
+                            className="flex items-center p-3 border border-gray-700 rounded-lg 
+                                     hover:bg-gray-700 w-full text-gray-300 transition-colors duration-300"
                           >
-                            <BookOpen className="w-5 h-5 mr-2 text-indigo-600" />
+                            <BookOpen className="w-5 h-5 mr-2 text-yellow-400" />
                             <span>{doc.title}</span>
                           </button>
                           
                           {selectedDoc === doc.id && doc.url && (
-                            <div className="mt-4">
+                            <div className="mt-4 bg-gray-700 p-4 rounded-lg">
                               <iframe
                                 src={`https://docs.google.com/viewer?url=${encodeURIComponent(doc.url)}&embedded=true`}
                                 width="100%"
                                 height="500px"
                                 frameBorder="0"
+                                className="bg-white rounded"
                               />
                             </div>
                           )}
@@ -325,18 +308,18 @@ export default function CourseDetails2() {
                         whileHover={{ y: -2 }}
                         className={`p-4 rounded-lg border cursor-pointer transition-colors ${
                           selectedVideo?.title === video.title
-                            ? 'bg-indigo-50 border-indigo-200'
-                            : 'bg-white hover:bg-gray-50'
+                            ? 'bg-gray-700 border-yellow-500/50'
+                            : 'bg-gray-800 border-gray-700 hover:border-yellow-500/30'
                         }`}
                         onClick={() => setSelectedVideo(video)}
                       >
                         <div className="flex items-center">
-                          <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mr-4">
-                            <Play className="w-5 h-5 text-indigo-600" />
+                          <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center mr-4">
+                            <Play className="w-5 h-5 text-yellow-400" />
                           </div>
                           <div className="flex-1">
-                            <h3 className="font-semibold mb-1">{video.title}</h3>
-                            <p className="text-sm text-gray-600">{video.description}</p>
+                            <h3 className="font-semibold mb-1 text-white">{video.title}</h3>
+                            <p className="text-sm text-gray-400">{video.description}</p>
                           </div>
                         </div>
                       </motion.div>
@@ -359,13 +342,13 @@ export default function CourseDetails2() {
               )}
 
               {activeTab === 'assignments' && (
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold mb-4">Assignments</h2>
+                <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+                  <h2 className="text-2xl font-bold mb-4 text-yellow-400">Assignments</h2>
                   <div className="space-y-6">
                     {course.assignments?.map((assignment, index) => (
                       <div key={index} className="border-b pb-4">
                         <h3 className="text-xl font-semibold mb-2">{assignment.title}</h3>
-                        <p className="text-gray-600 mb-2">{assignment.description}</p>
+                        <p className="text-gray-300 mb-2">{assignment.description}</p>
                         <p className="text-sm text-gray-500">Due: {assignment.dueDate}</p>
                       </div>
                     ))}
@@ -374,8 +357,8 @@ export default function CourseDetails2() {
               )}
 
               {activeTab === 'resources' && (
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold mb-4">Additional Resources</h2>
+                <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+                  <h2 className="text-2xl font-bold mb-4 text-yellow-400">Additional Resources</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {course.resources?.map((resource, index) => (
                       <a
@@ -383,9 +366,9 @@ export default function CourseDetails2() {
                         href={resource.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center p-4 border rounded-lg hover:bg-gray-50"
+                        className="flex items-center p-4 border rounded-lg hover:bg-gray-700"
                       >
-                        <BookOpen className="w-6 h-6 text-indigo-600 mr-3" />
+                        <BookOpen className="w-6 h-6 text-yellow-400 mr-3" />
                         <div>
                           <h3 className="font-semibold">{resource.title}</h3>
                           <p className="text-sm text-gray-500">{resource.type}</p>
@@ -397,8 +380,8 @@ export default function CourseDetails2() {
               )}
 
               {activeTab === 'ide' && (
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold mb-4">Python IDE</h2>
+                <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+                  <h2 className="text-2xl font-bold mb-4 text-yellow-400">Python IDE</h2>
                   <div className="h-[500px] rounded-lg overflow-hidden">
                     <Editor
                       height="100%"
@@ -417,8 +400,8 @@ export default function CourseDetails2() {
               )}
 
               {activeTab === 'chat' && (
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold mb-4">Course Assistant</h2>
+                <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+                  <h2 className="text-2xl font-bold mb-4 text-yellow-400">Course Assistant</h2>
                   <div className="h-[400px] overflow-y-auto mb-4 space-y-4">
                     {chatMessages.map((message, index) => (
                       <div
@@ -430,8 +413,8 @@ export default function CourseDetails2() {
                         <div
                           className={`max-w-[80%] p-4 rounded-lg ${
                             message.role === 'user'
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-gray-100'
+                              ? 'bg-yellow-600 text-white'
+                              : 'bg-gray-700'
                           }`}
                         >
                           {message.content}
@@ -459,65 +442,68 @@ export default function CourseDetails2() {
             {/* Sidebar */}
             <div className="space-y-8">
               {/* Course Progress */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-xl font-bold mb-4">Course Progress</h2>
+              <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+                <h2 className="text-xl font-bold mb-4 text-yellow-400">Course Progress</h2>
                 <div className="relative pt-1">
                   <div className="flex mb-2 items-center justify-between">
                     <div>
-                      <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-indigo-600 bg-indigo-200">
+                      <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full 
+                                     text-yellow-400 bg-yellow-400/20">
                         In Progress
                       </span>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs font-semibold inline-block text-indigo-600">
+                      <span className="text-xs font-semibold inline-block text-yellow-400">
                         30%
                       </span>
                     </div>
                   </div>
-                  <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-indigo-200">
+                  <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-700">
                     <div
                       style={{ width: "30%" }}
-                      className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-600"
+                      className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-yellow-500"
                     ></div>
                   </div>
                 </div>
               </div>
 
               {/* Next Steps */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-xl font-bold mb-4">Next Steps</h2>
+              <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+                <h2 className="text-xl font-bold mb-4 text-yellow-400">Next Steps</h2>
                 <ul className="space-y-3">
-                  <li className="flex items-center text-gray-600">
-                    <BookOpen className="w-5 h-5 mr-2 text-indigo-600" />
+                  <li className="flex items-center text-gray-300">
+                    <BookOpen className="w-5 h-5 mr-2 text-yellow-400" />
                     Complete Module 2
                   </li>
-                  <li className="flex items-center text-gray-600">
-                    <Award className="w-5 h-5 mr-2 text-indigo-600" />
+                  <li className="flex items-center text-gray-300">
+                    <Award className="w-5 h-5 mr-2 text-yellow-400" />
                     Take Quiz 1
                   </li>
                 </ul>
               </div>
 
               {/* Course Info */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-xl font-bold mb-4">Course Information</h2>
+              <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+                <h2 className="text-xl font-bold mb-4 text-yellow-400">Course Information</h2>
                 <ul className="space-y-3">
                   <li className="flex justify-between">
-                    <span className="text-gray-600">Duration:</span>
-                    <span className="font-semibold">{course.duration}</span>
+                    <span className="text-gray-400">Duration:</span>
+                    <span className="font-semibold text-white">{course.duration}</span>
                   </li>
                   <li className="flex justify-between">
-                    <span className="text-gray-600">Level:</span>
-                    <span className="font-semibold capitalize">{course.level}</span>
+                    <span className="text-gray-400">Level:</span>
+                    <span className="font-semibold text-white capitalize">{course.level}</span>
                   </li>
                   <li className="flex justify-between">
-                    <span className="text-gray-600">Price:</span>
-                    <span className="font-semibold">${course.price}</span>
+                    <span className="text-gray-400">Price:</span>
+                    <span className="font-semibold text-white">${course.price}</span>
                   </li>
                 </ul>
               </div>
 
-              <Button className="w-full">Enroll Now</Button>
+              <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold">
+                Enroll Now
+              </Button>
             </div>
           </div>
         </motion.div>

@@ -1,43 +1,112 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, BookOpen, Users, Trophy, Star, Clock, ChevronRight, Sparkles, Globe, Award } from 'lucide-react';
+import { motion, Variants } from 'framer-motion';
+import { ArrowRight, Clock, Star, Globe, Sparkles, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { collection, query, limit, getDocs, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
+
 import { getAuth } from 'firebase/auth';
+import '../index.css'; // Import the CSS file
+
+// Add types directly in the file
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  image?: string;
+  category: string;
+  duration: string;
+  rating?: number;
+  createdAt: string;
+}
+
+interface Blog {
+  id: string;
+  title: string;
+  content: string;
+  image?: string;
+  createdAt: string;
+}
+
+// Define animation variants
+const container: Variants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.2 } }
+};
+
+const item: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 }
+};
+
+// Define CardSection props interface
+interface CardSectionProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+}
+
+const CardSection: React.FC<CardSectionProps> = ({ icon: Icon, title, description }) => (
+  <motion.div
+    variants={item}
+    whileHover={{ y: -10 }}
+    className="bg-black/95-1000 rounded-xl p-6 shadow-xl border border-gray-700 hover:border-gray-600 transition-colors duration-300"
+  >
+    <Icon className="w-10 h-10 text-orange-600 mb-4" />
+    <h3 className="text-xl font-bold mb-2 text-white">{title}</h3>
+    <p className="text-gray-400">{description}</p>
+  </motion.div>
+);
+
+// New SpicedText component with CSS animation
+export const SpicedText = () => {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center z-[-1]">
+      <p className="text-transform-uppercase letter-spacing-wide inline-block border-4 border-double border-white/25 border-t-4 border-b-4 py-6 px-0 w-[60em] text-white/25 font-neuton text-base text-center">
+        Data Science
+        <span className="block font-oswald font-bold text-6xl leading-none py-2 text-transparent bg-[url(https://i.ibb.co/RDTnNrT/animated-text-fill.png)] bg-repeat-y bg-clip-text animate-aitf text-shadow-glow transform-gpu backface-hidden">
+          D'festa
+        </span>
+        —Data will talk to you if you're willing to listen—
+      </p>
+    </div>
+  );
+};
+//𝓓'𝓕𝓮𝓼𝓽𝓪
+export const SpicedText1 = () => {
+  return (
+    <div className="absolute top-0 left-0 flex items-center justify-start z-[-1] p-4">
+      <p className="text-white/25 text-lg font-light">
+        <span className="block font-bold text-3xl leading-none text-transparent bg-[url(https://i.ibb.co/RDTnNrT/animated-text-fill.png)] bg-repeat-y bg-clip-text animate-aitf">
+          
+        𝓓'𝓕𝓮𝓼𝓽𝓪
+        </span>
+      </p>
+    </div>
+  );
+};
+
+
+
 
 export default function Home() {
-  const [featuredCourses, setFeaturedCourses] = useState([]);
-  const [latestBlogs, setLatestBlogs] = useState([]);
+  const [featuredCourses, setFeaturedCourses] = useState<Course[]>([]);
+  const [latestBlogs, setLatestBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const coursesQuery = query(
-          collection(db, 'programs'),
-          orderBy('createdAt', 'desc'),
-          limit(3)
-        );
+        const coursesQuery = query(collection(db, 'programs'), orderBy('createdAt', 'desc'), limit(3));
         const coursesSnapshot = await getDocs(coursesQuery);
-        const coursesData = coursesSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const coursesData = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Course[];
         setFeaturedCourses(coursesData);
 
-        const blogsQuery = query(
-          collection(db, 'blogs'),
-          orderBy('createdAt', 'desc'),
-          limit(2)
-        );
+        const blogsQuery = query(collection(db, 'blogs'), orderBy('createdAt', 'desc'), limit(2));
         const blogsSnapshot = await getDocs(blogsQuery);
-        const blogsData = blogsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const blogsData = blogsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Blog[];
         setLatestBlogs(blogsData);
       } catch (error) {
         console.error('Error fetching content:', error);
@@ -58,267 +127,100 @@ export default function Home() {
     checkLoginStatus();
   }, []);
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2
-      }
-    }
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  };
-
   return (
-    <div className="space-y-20">
-      {/* Hero Section */}
+    <div className="bg-black/95 min-h-screen">
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center">
-        <div className="absolute inset-0 bg-black opacity-50"></div> {/* Dark overlay */}
-        <div className="absolute inset-0">
-          <motion.img
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 2 }}
-            src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt="Education Banner"
-            className="w-full h-full object-cover"
-          />
-        </div>
-        
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white py-32"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white w-full"
         >
-          <div className="max-w-3xl">
-            <motion.span 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="inline-block px-4 py-1 rounded-full bg-white/20 backdrop-blur-sm text-sm font-medium mb-4"
-            >
-              Welcome to ForeFight Era
-            </motion.span>
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="text-6xl font-bold mb-6 leading-tight "
-            >
-              Transform Your Future with Modern Website
-            </motion.h1>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-              className="text-xl mb-8 text-white/90"
-            >
-              We will create a website tailored for your business or startup, ensuring it aligns with your needs. Our services come at a budget-friendly price to help you establish your online presence.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-              className="flex space-x-4"
-            >
-              <Link to="/projects">
-                <Button size="lg" className="bg-white text-indigo-600 hover:bg-white/90">
-                  Explore projects
-                  <ChevronRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link to="/about">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                  Learn More
-                </Button>
-              </Link>
-            </motion.div>
+          <div className="max-w-3xl mx-auto text-center">
+            <SpicedText />
           </div>
         </motion.div>
       </section>
 
-      {/* Move the floating cards section below */}
-      <motion.div 
+      {/* Services Section */}
+      <motion.div
         variants={container}
         initial="hidden"
         whileInView="show"
         viewport={{ once: true }}
-        className="relative bg-gray-50 py-20"
+        className="relative py-20 bg-black/100"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-white mb-4">Our Services</h2>
+            <p className="text-gray-400 text-lg">Advanced data solutions for modern businesses</p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <motion.div
-              variants={item}
-              whileHover={{ y: -10 }}
-              className="bg-white rounded-xl p-6 shadow-xl"
-            >
-              <Globe className="w-10 h-10 text-indigo-600 mb-4" />
-              <h3 className="text-xl font-bold mb-2">Global Build Websites</h3>
-              <p className="text-gray-600"> Whether you’re a startup, freelancer, or established brand, we bring your vision to life with professional designs and seamless functionality.</p>
-            </motion.div>
-            
-            <motion.div
-              variants={item}
-              whileHover={{ y: -10 }}
-              className="bg-white rounded-xl p-6 shadow-xl"
-            >
-              <Sparkles className="w-10 h-10 text-indigo-600 mb-4" />
-              <h3 className="text-xl font-bold mb-2">Responsive Web Design</h3>
-              <p className="text-gray-600">Engage with hands-on projects and real-world applications Responsive Web Design.</p>
-            </motion.div>
-            
-            <motion.div
-              variants={item}
-              whileHover={{ y: -10 }}
-              className="bg-white rounded-xl p-6 shadow-xl"
-            >
-              <Award className="w-10 h-10 text-indigo-600 mb-4" />
-              <h3 className="text-xl font-bold mb-2">Best pricing</h3>
-              <p className="text-gray-600">we specialize in building high-quality, budget-friendly websites tailored to your business needs</p>
-            </motion.div>
+            <CardSection icon={Globe} title="Data Visualization" description="Transform complex data into intuitive interactive dashboards and visual insights for better decision-making." />
+            <CardSection icon={Sparkles} title="Machine Learning" description="Custom ML solutions including predictive analytics, pattern recognition, and automated decision systems." />
+            <CardSection icon={Award} title="Data Analytics" description="Comprehensive data analysis services including statistical modeling, trend analysis, and business intelligence." />
           </div>
         </div>
       </motion.div>
 
-      {/* Featured Courses */}
-      {isLoggedIn && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold mb-4 text-yellow-600 "> Projects</h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Discover our most popular Projects and start your learning journey today.
-              </p>
+      {/* Projects Section - Always shown */}
+      <section className="py-20 bg-gray-60">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4 text-orange-600">Events</h2>
+            <p className="text-xl text-white max-w-2xl mx-auto">Discover our most popular Events and start your experience today.</p>
+          </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray/60"></div>
             </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-              </div>
-            ) : (
-              <motion.div
-                variants={container}
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true }}
-                className="grid grid-cols-1 md:grid-cols-3 gap-8"
-              >
-                {featuredCourses.map((course, index) => (
-                  <motion.div
-                    key={course.id}
-                    variants={item}
-                    whileHover={{ y: -10 }}
-                    className="bg-white rounded-xl shadow-lg overflow-hidden"
-                  >
-                    <div className="relative">
-                      <img
-                        src={course.image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085"}
-                        alt={course.title}
-                        className="w-full h-48 object-cover"
-                      />
-                      <div className="absolute top-4 right-4">
-                        <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-sm font-medium text-indigo-600">
-                          {course.category}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold mb-2">{course.title}</h3>
-                      <p className="text-gray-600 mb-4 line-clamp-2">{course.description}</p>
-                      
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center text-gray-500">
-                          <Clock className="w-4 h-4 mr-1" />
-                          <span className="text-sm">{course.duration}</span>
-                        </div>
-                        <div className="flex items-center text-yellow-500">
-                          <Star className="w-4 h-4 mr-1" />
-                          <span className="text-sm">{course.rating || 4.5}</span>
-                        </div>
-                      </div>
-
-                      <Link to={`/programs/${course.id}`}>
-                        <Button className="w-full">
-                          View Course
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </motion.div>
-        </section>
-      )}
-
-      {/* Latest Blogs */}
-      {isLoggedIn && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold mb-4 text-yellow-600 ">Our services</h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Stay updated with the latest Services.
-              </p>
-            </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-              </div>
-            ) : (
-              <motion.div
-                variants={container}
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true }}
-                className="grid grid-cols-1 md:grid-cols-3 gap-8"
-              >
-                {latestBlogs.map((blog, index) => (
-                  <motion.div
-                    key={blog.id}
-                    variants={item}
-                    whileHover={{ y: -10 }}
-                    className="bg-white rounded-xl shadow-lg overflow-hidden"
-                  >
+          ) : (
+            <motion.div
+              variants={container}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-6 md:px-8"
+            >
+              {featuredCourses.map((course) => (
+                <motion.div
+                  key={course.id}
+                  variants={item}
+                  whileHover={{ y: -5 }}
+                  className="bg-[#0d1219] rounded-2xl shadow-lg overflow-hidden transition-transform duration-300"
+                >
+                  <div className="relative">
                     <img
-                      src={blog.image || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3"}
-                      alt={blog.title}
-                      className="w-full h-48 object-cover"
+                      src={course.imageUrl}
+                      alt={course.title}
+                      className="w-full h-56 sm:h-48 md:h-52 lg:h-56 object-cover"
                     />
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold mb-2">{blog.title}</h3>
-                      <p className="text-gray-600 mb-4 line-clamp-3">{blog.content}</p>
-                      <Link to={`/blogs/${blog.id}`}>
-                        <Button variant="ghost" className="text-indigo-600 hover:text-indigo-700">
-                          Read More <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </Link>
+                    <div className="absolute top-4 right-4">
+                      <span className="px-3 py-1 bg-gray-80 text-orange-500 text-sm font-medium rounded-full">
+                        {course.category}
+                      </span>
                     </div>
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </motion.div>
-        </section>
-      )}
+                  </div>
+                  <div className="p-5 sm:p-6">
+                    <h3 className="text-lg sm:text-xl font-bold mb-2 text-white">{course.title}</h3>
+                    <p className="text-gray-400 mb-4 line-clamp-2">{course.description}</p>
+                    <div className="flex items-center justify-between mb-4">
+                      
+                      
+                    </div>
+                    <Link to={`projects/${course.id}`}>
+                      <Button className="w-full bg-orange-600 hover:bg-orange-500 transition-colors">
+                        View Event <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </motion.div>
+      </section>
     </div>
   );
 }

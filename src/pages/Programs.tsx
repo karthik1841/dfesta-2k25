@@ -20,18 +20,14 @@ export default function Programs() {
         const enrollmentsSnapshot = await getDocs(collection(db, 'enrollments'));
         const ratingsSnapshot = await getDocs(collection(db, 'ratings'));
 
-        // Get all enrollments
         const enrollments = enrollmentsSnapshot.docs.map(doc => doc.data());
-        // Get all ratings
         const ratings = ratingsSnapshot.docs.map(doc => doc.data());
 
         const coursesData = querySnapshot.docs.map(doc => {
           const courseId = doc.id;
-          // Count students enrolled in this course
           const studentCount = enrollments.filter(e => e.courseId === courseId).length;
-          // Calculate average rating for this course
           const courseRatings = ratings.filter(r => r.courseId === courseId);
-          const averageRating = courseRatings.length > 0 
+          const averageRating = courseRatings.length > 0
             ? (courseRatings.reduce((acc, curr) => acc + curr.rating, 0) / courseRatings.length).toFixed(1)
             : 0;
 
@@ -42,7 +38,7 @@ export default function Programs() {
             rating: averageRating
           };
         });
-        
+
         setCourses(coursesData);
       } catch (error) {
         console.error('Error fetching courses:', error);
@@ -56,10 +52,10 @@ export default function Programs() {
   }, []);
 
   const fetchVideoUrl = async (courseId) => {
-    // Fetch video URL from Firebase Storage or Firestore
-    // Assuming you have a function to get the video URL
-    const videoUrl = await getVideoUrlFromStorage(courseId); // Implement this function
-    return videoUrl;
+    // Placeholder: Implement this based on how videos are stored
+    // For now, assuming videoContent[0].url is available in the program data
+    const course = courses.find(c => c.id === courseId);
+    return course?.videoContent?.[0]?.url || ''; // Default to empty string if no video
   };
 
   const handleEnroll = async (courseId) => {
@@ -67,10 +63,10 @@ export default function Programs() {
       const user = auth.currentUser;
       if (!user) {
         toast.error('Please login to enroll in courses');
+        navigate('/login');
         return;
       }
 
-      // Check if user is already enrolled
       const enrollmentsRef = collection(db, 'enrollments');
       const enrollmentQuery = await getDocs(enrollmentsRef);
       const existingEnrollment = enrollmentQuery.docs.find(
@@ -90,12 +86,17 @@ export default function Programs() {
         status: 'active'
       });
 
-      // Fetch video URL after successful enrollment
       const videoUrl = await fetchVideoUrl(courseId);
-      setSelectedVideo({ url: videoUrl, title: 'Video Title', description: 'Video Description', thumbnail: 'Thumbnail URL' }); // Update with actual data
+      const course = courses.find(c => c.id === courseId);
+      setSelectedVideo({
+        url: videoUrl,
+        title: course.videoContent?.[0]?.title || 'Course Video',
+        description: course.videoContent?.[0]?.description || 'Course introduction video',
+        thumbnail: course.image || 'https://via.placeholder.com/150'
+      });
 
       toast.success('Successfully enrolled in the course!');
-      navigate('/profile');
+      // navigate('/profile'); // Commented out to show video modal instead
     } catch (error) {
       console.error('Error enrolling in course:', error);
       toast.error('Failed to enroll in course');
@@ -107,10 +108,10 @@ export default function Programs() {
       const user = auth.currentUser;
       if (!user) {
         toast.error('Please login to rate this course');
+        navigate('/login');
         return;
       }
 
-      // Check if user has already rated
       const ratingsRef = collection(db, 'ratings');
       const ratingQuery = await getDocs(ratingsRef);
       const existingRating = ratingQuery.docs.find(
@@ -122,7 +123,6 @@ export default function Programs() {
         return;
       }
 
-      // Add new rating
       await addDoc(collection(db, 'ratings'), {
         userId: user.uid,
         courseId: courseId,
@@ -131,7 +131,6 @@ export default function Programs() {
       });
 
       toast.success('Thank you for rating!');
-      // Refresh courses to update the rating
       window.location.reload();
     } catch (error) {
       console.error('Error rating course:', error);
@@ -140,11 +139,11 @@ export default function Programs() {
   };
 
   const VideoPreviewModal = ({ video, onClose }) => (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl max-w-3xl w-full p-6">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-gray-800 rounded-xl max-w-3xl w-full p-6 border border-gray-700">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold">{video.title}</h3>
-          <Button variant="ghost" onClick={onClose}>×</Button>
+          <h3 className="text-xl font-bold text-white">{video.title}</h3>
+          <Button variant="ghost" className="text-gray-400 hover:text-white" onClick={onClose}>×</Button>
         </div>
         <div className="aspect-video rounded-lg overflow-hidden bg-black mb-4">
           <video
@@ -156,156 +155,94 @@ export default function Programs() {
             Your browser does not support the video tag.
           </video>
         </div>
-        <p className="text-gray-600 mb-4">{video.description}</p>
+        <p className="text-gray-300">{video.description}</p>
       </div>
     </div>
   );
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-400"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <h1 className="text-4xl font-bold mb-8">Our Projects</h1>
-        {courses.length === 0 ? (
-          <p className="text-center text-gray-500 py-8">No programs available at the moment.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {courses.map((course) => (
-              <motion.div
-                key={course.id}
-                whileHover={{ y: -5 }}
-                className="bg-white rounded-xl shadow-lg overflow-hidden"
-              >
-                <div className="relative">
-                  <img
-                    src={course.image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085"}
-                    alt={course.title}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="absolute top-4 right-4">
-                    <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-sm font-medium text-indigo-600">
-                      {course.category}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-2">{course.title}</h3>
-                  <p className="text-gray-600 mb-4 line-clamp-3">{course.description}</p>
-                  <div className="flex items-center justify-between">
-                    
-                    <div className="flex space-x-2">
-                      <Link to={`/projects/${course.id}`} state={{ course }}>
-                        <Button variant="outline">
-                          View Details
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <div className="flex items-center text-yellow-500 cursor-pointer">
-                      <Star 
-                        className={`w-4 h-4 mr-1 ${auth.currentUser ? 'cursor-pointer' : ''}`} 
-                        onClick={() => auth.currentUser && handleRating(course.id, 5)}
-                      />
-                      <span className="text-sm">
-                        {course.rating > 0 ? course.rating : 'No ratings'}
+    <div className="min-h-screen bg-[#0d1219] py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className="text-4xl font-bold mb-8 text-orange-400">Our Events</h1>
+          {courses.length === 0 ? (
+            <p className="text-center text-orange-400 py-8">No programs available at the moment.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {courses.map((course) => (
+                <motion.div
+                  key={course.id}
+                  whileHover={{ y: -5 }}
+                  className="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700
+                            hover:border-yellow-500/50 transition-all duration-300"
+                >
+                  <div className="relative group">
+                    <img
+                      src={course.imageUrl}
+                      alt={course.title}
+                      className="w-full h-48 object-cover transition-transform duration-300 
+                               group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-60" />
+                    <div className="absolute top-4 right-4">
+                      <span className="px-3 py-1 bg-gray-900/90 backdrop-blur-sm rounded-full 
+                                     text-sm font-medium text-orange-400 border border-yellow-400/30">
+                        {course.category}
                       </span>
                     </div>
-
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold mb-2 text-white">{course.title}</h3>
+                    <p className="text-gray-400 mb-2 line-clamp-2">{course.description}</p>
+                    <div className="space-y-2 text-gray-300 text-sm">
+                     
+                        
+                      
+                    </div>
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="flex space-x-2">
+                        <Link to={`/projects/${course.id}`} state={{ course }}>
+                          <Button 
+                            variant="outline" 
+                            className="border-gray-600 text-gray-300 hover:text-orange-400 
+                                     hover:border-orange-400"
+                          >
+                            View Details
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </Link>
+                        
+                      </div>
+                      <div className="flex items-center text-orange-400 cursor-pointer">
+                        
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-            {/* Static Program Example
-          
-            <motion.div
-              key="static-course"
-              whileHover={{ y: -5 }}
-              className="bg-white rounded-xl shadow-lg overflow-hidden"
-            >
-              <div className="relative">
-                <img
-                  src="https://images.unsplash.com/photo-1498050108023-c5249f4df085"
-                  alt="Static Course Title"
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute top-4 right-4">
-                  <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-sm font-medium text-indigo-600">
-                    python
-                  </span>
-                </div>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-2">Numpy</h3>
-                <p className="text-gray-600 mb-4">NumPy, short for Numerical Python, is a fundamental library for numerical and scientific computing in Python. It provides support for large, multi-dimensional arrays and matrices, along with a collection of high-level mathematical functions to operate on these arrays efficiently.</p>
-                
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center text-gray-500">
-                    <Clock className="w-4 h-4 mr-1" />
-                    <span className="text-sm">3 hours</span>
-                  </div>
-                  <div className="flex items-center text-gray-500">
-                    <Users className="w-4 h-4 mr-1" />
-                    <span className="text-sm">10 students</span>
-                  </div>
-                  <div className="flex items-center text-yellow-500 cursor-pointer">
-                    <Star className="w-4 h-4 mr-1" />
-                    <span className="text-sm">4.5</span>
-                  </div>
-                </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </motion.div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-indigo-600">
-                    $10
-                  </span>
-                  <div className="flex space-x-2">
-                    <Link to={`/programs/coursedetails2`} state={{ 
-                      course: {
-                        title: "Numpy",
-                        description: "NumPy, short for Numerical Python...",
-                        category: "python",
-                        duration: "3 hours",
-                        students: 10,
-                        rating: 4.5,
-                        price: 10
-                      }
-                    }}>
-                      <Button variant="outline">
-                        View Details
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Button 
-                      onClick={() => handleEnroll('CourseDetail2')}
-                    >
-                      Enroll Now
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-            */}
-          </div>
+        {selectedVideo && (
+          <VideoPreviewModal
+            video={selectedVideo}
+            onClose={() => setSelectedVideo(null)}
+          />
         )}
-      </motion.div>
-
-      {/* Video Preview Modal */}
-      {selectedVideo && (
-        <VideoPreviewModal
-          video={selectedVideo}
-          onClose={() => setSelectedVideo(null)}
-        />
-      )}
+      </div>
     </div>
   );
 }

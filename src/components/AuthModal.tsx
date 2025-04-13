@@ -55,7 +55,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode }: AuthModalPro
 
         toast.success('Account created successfully!');
         
-        // Role-based redirection
+        
         if (formData.role === 'faculty') {
           navigate('/admin');
         } else {
