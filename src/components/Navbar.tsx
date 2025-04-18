@@ -15,7 +15,7 @@ export default function Navbar({ isAdmin }: { isAdmin: boolean }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const mobileMenuRef = useRef(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -26,8 +26,16 @@ export default function Navbar({ isAdmin }: { isAdmin: boolean }) {
   }, []);
 
   // Auto-close menu when clicking anywhere inside the navbar
-  
-  
+  useEffect(() => {
+    const handleClick = (event: MouseEvent) => {
+      if (isOpen && mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [isOpen]);
 
   const handleSignOut = async () => {
     try {

@@ -21,7 +21,6 @@ interface Program {
   title: string;
   description: string;
   price: string;
-  duration: string;
   category: string;
   websiteLink: string;
   imageUrl: string;
@@ -35,6 +34,15 @@ interface Student {
   role: string;
   info: string;
   phone: string;
+  priority?: number;
+}
+
+interface CoordinatorStudent {
+  id: string;
+  name: string;
+  info: string;
+  priority?: number;
+  createdAt?: string;
 }
 
 interface Countdown {
@@ -52,24 +60,37 @@ export default function AdminDashboard() {
     title: '',
     description: '',
     price: '',
-    duration: '',
     category: '',
     websiteLink: '',
     imageUrl: ''
   });
+  const [editingProgram, setEditingProgram] = useState<Program | null>(null);
+  const [showEditProgram, setShowEditProgram] = useState<boolean>(false);
   const [students, setStudents] = useState<Student[]>([]);
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [newStudent, setNewStudent] = useState<Omit<Student, 'id'>>({
     name: '',
     role: '',
     info: '',
-    phone: ''
+    phone: '',
+    priority: 0
   });
+  const [coordinatorStudents, setCoordinatorStudents] = useState<CoordinatorStudent[]>([]);
+  const [showAddCoordinator, setShowAddCoordinator] = useState(false);
+  const [newCoordinator, setNewCoordinator] = useState<Omit<CoordinatorStudent, 'id'>>({
+    name: '',
+    info: '',
+    priority: 0
+  });
+  const [editingCoordinator, setEditingCoordinator] = useState<CoordinatorStudent | null>(null);
+  const [showEditCoordinator, setShowEditCoordinator] = useState(false);
   const [countdowns, setCountdowns] = useState<Countdown[]>([]);
   const [showAddCountdown, setShowAddCountdown] = useState(false);
   const [newCountdown, setNewCountdown] = useState<Omit<Countdown, 'id'>>({
     date: ''
   });
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [showEditStudent, setShowEditStudent] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -133,6 +154,21 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchCoordinatorStudents = async () => {
+    try {
+      const coordinatorsRef = collection(db, 'coordinatorStudents');
+      const snapshot = await getDocs(coordinatorsRef);
+      const coordinatorsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as CoordinatorStudent[];
+      setCoordinatorStudents(coordinatorsData);
+    } catch (error) {
+      console.error('Error fetching coordinator students:', error);
+      toast.error('Failed to fetch coordinator students');
+    }
+  };
+
   const fetchCountdowns = async () => {
     try {
       const countdownsRef = collection(db, 'countdowns');
@@ -152,6 +188,7 @@ export default function AdminDashboard() {
     fetchUsers();
     fetchPrograms();
     fetchStudents();
+    fetchCoordinatorStudents();
     fetchCountdowns();
   }, []);
 
@@ -175,7 +212,6 @@ export default function AdminDashboard() {
         title: '',
         description: '',
         price: '',
-        duration: '',
         category: '',
         websiteLink: '',
         imageUrl: ''
@@ -222,7 +258,8 @@ export default function AdminDashboard() {
         name: '',
         role: '',
         info: '',
-        phone: ''
+        phone: '',
+        priority: 0
       });
       fetchStudents();
     } catch (error) {
@@ -240,6 +277,56 @@ export default function AdminDashboard() {
       } catch (error) {
         console.error('Error deleting student:', error);
         toast.error('Failed to delete student');
+      }
+    }
+  };
+
+  const handleAddCoordinator = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      await addDoc(collection(db, 'coordinatorStudents'), {
+        ...newCoordinator,
+        createdAt: new Date().toISOString()
+      });
+      toast.success('Coordinator student added successfully!');
+      setShowAddCoordinator(false);
+      setNewCoordinator({ name: '', info: '', priority: 0 });
+      fetchCoordinatorStudents();
+    } catch (error) {
+      console.error('Error adding coordinator student:', error);
+      toast.error('Failed to add coordinator student');
+    }
+  };
+
+  const handleEditCoordinator = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingCoordinator) return;
+    
+    try {
+      const coordinatorRef = doc(db, 'coordinatorStudents', editingCoordinator.id);
+      await updateDoc(coordinatorRef, {
+        ...editingCoordinator,
+        updatedAt: new Date().toISOString()
+      });
+      toast.success('Coordinator student updated successfully!');
+      setShowEditCoordinator(false);
+      setEditingCoordinator(null);
+      fetchCoordinatorStudents();
+    } catch (error) {
+      console.error('Error updating coordinator student:', error);
+      toast.error('Failed to update coordinator student');
+    }
+  };
+
+  const handleDeleteCoordinator = async (coordinatorId: string) => {
+    if (window.confirm('Are you sure you want to delete this coordinator student?')) {
+      try {
+        await deleteDoc(doc(db, 'coordinatorStudents', coordinatorId));
+        toast.success('Coordinator student deleted successfully!');
+        await fetchCoordinatorStudents();
+      } catch (error) {
+        console.error('Error deleting coordinator student:', error);
+        toast.error('Failed to delete coordinator student');
       }
     }
   };
@@ -286,6 +373,62 @@ export default function AdminDashboard() {
     const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
     return `${days}d ${hours}h ${minutes}m remaining`;
+  };
+
+  const handleEditProgram = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingProgram) return;
+    
+    try {
+      const programRef = doc(db, 'programs', editingProgram.id);
+      await updateDoc(programRef, {
+        ...editingProgram,
+        updatedAt: new Date().toISOString(),
+        updatedBy: auth.currentUser?.email
+      });
+      toast.success('Program updated successfully!');
+      setShowEditProgram(false);
+      setEditingProgram(null);
+      fetchPrograms();
+    } catch (error) {
+      console.error('Error updating program:', error);
+      toast.error('Failed to update program');
+    }
+  };
+
+  const startEditProgram = (program: Program) => {
+    setEditingProgram(program);
+    setShowEditProgram(true);
+  };
+
+  const startEditCoordinator = (coordinator: CoordinatorStudent) => {
+    setEditingCoordinator(coordinator);
+    setShowEditCoordinator(true);
+  };
+
+  const handleEditStudent = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingStudent) return;
+    
+    try {
+      const studentRef = doc(db, 'students', editingStudent.id);
+      await updateDoc(studentRef, {
+        ...editingStudent,
+        updatedAt: new Date().toISOString()
+      });
+      toast.success('Student updated successfully!');
+      setShowEditStudent(false);
+      setEditingStudent(null);
+      fetchStudents();
+    } catch (error) {
+      console.error('Error updating student:', error);
+      toast.error('Failed to update student');
+    }
+  };
+
+  const startEditStudent = (student: Student) => {
+    setEditingStudent(student);
+    setShowEditStudent(true);
   };
 
   return (
@@ -381,7 +524,8 @@ export default function AdminDashboard() {
             {[
               { id: 'users', icon: Users, label: 'Users' },
               { id: 'programs', icon: FileText, label: 'Events' },
-              { id: 'students', icon: Users, label: 'Students' }
+              { id: 'students', icon: Users, label: 'Students' },
+              { id: 'coordinators', icon: Users, label: 'Coordinators' }
             ].map((tab) => (
               <Button
                 key={tab.id}
@@ -544,6 +688,75 @@ export default function AdminDashboard() {
                   </div>
                 )}
 
+                {showEditProgram && editingProgram && (
+                  <div className="mb-6">
+                    <form onSubmit={handleEditProgram} className="space-y-4">
+                      <input
+                        type="text"
+                        placeholder="Program Title"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400"
+                        value={editingProgram.title}
+                        onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })}
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Image URL"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400"
+                        value={editingProgram.imageUrl}
+                        onChange={(e) => setEditingProgram({ ...editingProgram, imageUrl: e.target.value })}
+                      />
+                      <textarea
+                        placeholder="Program Description"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 h-32"
+                        value={editingProgram.description}
+                        onChange={(e) => setEditingProgram({ ...editingProgram, description: e.target.value })}
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Category"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400"
+                        value={editingProgram.category}
+                        onChange={(e) => setEditingProgram({ ...editingProgram, category: e.target.value })}
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Website Link"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400"
+                        value={editingProgram.websiteLink}
+                        onChange={(e) => setEditingProgram({ ...editingProgram, websiteLink: e.target.value })}
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Price"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400"
+                        value={editingProgram.price}
+                        onChange={(e) => setEditingProgram({ ...editingProgram, price: e.target.value })}
+                        required
+                      />
+                      <div className="flex justify-end space-x-4">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="text-gray-300 hover:text-white"
+                          onClick={() => {
+                            setShowEditProgram(false);
+                            setEditingProgram(null);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" className="bg-yellow-400 text-gray-900 hover:bg-yellow-500">
+                          Update Program
+                        </Button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {programs.map((program) => (
                     <motion.div
@@ -558,6 +771,13 @@ export default function AdminDashboard() {
                         Website: <a href={program.websiteLink} target="_blank" rel="noopener noreferrer">{program.websiteLink}</a>
                       </p>
                       <div className="flex justify-between items-center">
+                        <Button
+                          variant="outline"
+                          className="text-gray-300 hover:text-white border-gray-600"
+                          onClick={() => startEditProgram(program)}
+                        >
+                          Edit
+                        </Button>
                         <Button
                           variant="ghost"
                           className="text-gray-300 hover:text-white"
@@ -606,13 +826,36 @@ export default function AdminDashboard() {
                       </select>
 
                       {newStudent.role.toLowerCase() === 'student' && (
+                        <>
+                          <input
+                            type="tel"
+                            placeholder="Phone Number"
+                            className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+                            value={newStudent.phone}
+                            onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value })}
+                            required
+                          />
+                          <input
+                            type="number"
+                            placeholder="Priority Number (0-100)"
+                            className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+                            value={newStudent.priority}
+                            onChange={(e) => setNewStudent({ ...newStudent, priority: parseInt(e.target.value) || 0 })}
+                            min="0"
+                            max="100"
+                          />
+                        </>
+                      )}
+
+                      {newStudent.role.toLowerCase() === 'faculty' && (
                         <input
-                          type="tel"
-                          placeholder="Phone Number"
+                          type="number"
+                          placeholder="Priority Number (0-100)"
                           className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
-                          value={newStudent.phone}
-                          onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value })}
-                          required
+                          value={newStudent.priority}
+                          onChange={(e) => setNewStudent({ ...newStudent, priority: parseInt(e.target.value) || 0 })}
+                          min="0"
+                          max="100"
                         />
                       )}
 
@@ -634,7 +877,8 @@ export default function AdminDashboard() {
                               name: '',
                               role: '',
                               info: '',
-                              phone: ''
+                              phone: '',
+                              priority: 0
                             });
                           }}
                         >
@@ -661,13 +905,237 @@ export default function AdminDashboard() {
                           )}
                           <p className="text-gray-300">{student.info}</p>
                         </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            className="text-gray-300 hover:text-white border-gray-600"
+                            onClick={() => startEditStudent(student)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="text-gray-300 hover:text-white"
+                            onClick={() => handleDeleteStudent(student.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {showEditStudent && editingStudent && (
+                  <div className="mb-6">
+                    <form onSubmit={handleEditStudent} className="space-y-4">
+                      <input
+                        type="text"
+                        placeholder="Name"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+                        value={editingStudent.name}
+                        onChange={(e) => setEditingStudent({ ...editingStudent, name: e.target.value })}
+                        required
+                      />
+                      
+                      <select
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+                        value={editingStudent.role}
+                        onChange={(e) => setEditingStudent({ ...editingStudent, role: e.target.value })}
+                        required
+                      >
+                        <option value="">Select Role</option>
+                        <option value="student">Student</option>
+                        <option value="faculty">Faculty</option>
+                      </select>
+
+                      {editingStudent.role.toLowerCase() === 'student' && (
+                        <>
+                          <input
+                            type="tel"
+                            placeholder="Phone Number"
+                            className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+                            value={editingStudent.phone}
+                            onChange={(e) => setEditingStudent({ ...editingStudent, phone: e.target.value })}
+                            required
+                          />
+                          <input
+                            type="number"
+                            placeholder="Priority Number (0-100)"
+                            className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+                            value={editingStudent.priority}
+                            onChange={(e) => setEditingStudent({ ...editingStudent, priority: parseInt(e.target.value) || 0 })}
+                            min="0"
+                            max="100"
+                          />
+                        </>
+                      )}
+
+                      {editingStudent.role.toLowerCase() === 'faculty' && (
+                        <input
+                          type="number"
+                          placeholder="Priority Number (0-100)"
+                          className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+                          value={editingStudent.priority}
+                          onChange={(e) => setEditingStudent({ ...editingStudent, priority: parseInt(e.target.value) || 0 })}
+                          min="0"
+                          max="100"
+                        />
+                      )}
+
+                      <textarea
+                        placeholder="Additional Information"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white h-24"
+                        value={editingStudent.info}
+                        onChange={(e) => setEditingStudent({ ...editingStudent, info: e.target.value })}
+                        required
+                      />
+                      
+                      <div className="flex justify-end space-x-4">
                         <Button
+                          type="button"
                           variant="ghost"
-                          className="text-gray-300 hover:text-white"
-                          onClick={() => handleDeleteStudent(student.id)}
+                          onClick={() => {
+                            setShowEditStudent(false);
+                            setEditingStudent(null);
+                          }}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          Cancel
                         </Button>
+                        <Button type="submit">Update Student</Button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'coordinators' && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold text-white">Coordinator Students Management</h2>
+                  <Button onClick={() => setShowAddCoordinator(true)}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Add Coordinator
+                  </Button>
+                </div>
+
+                {showAddCoordinator && (
+                  <div className="mb-6">
+                    <form onSubmit={handleAddCoordinator} className="space-y-4">
+                      <input
+                        type="text"
+                        placeholder="Coordinator Name"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+                        value={newCoordinator.name}
+                        onChange={(e) => setNewCoordinator({ ...newCoordinator, name: e.target.value })}
+                        required
+                      />
+                      <input
+                        type="number"
+                        placeholder="Priority Number (0-100)"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+                        value={newCoordinator.priority}
+                        onChange={(e) => setNewCoordinator({ ...newCoordinator, priority: parseInt(e.target.value) || 0 })}
+                        min="0"
+                        max="100"
+                      />
+                      <textarea
+                        placeholder="Additional Information"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white h-24"
+                        value={newCoordinator.info}
+                        onChange={(e) => setNewCoordinator({ ...newCoordinator, info: e.target.value })}
+                        required
+                      />
+                      <div className="flex justify-end space-x-4">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            setShowAddCoordinator(false);
+                            setShowEditCoordinator(false);
+                            setEditingCoordinator(null);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit">Add Coordinator</Button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {showEditCoordinator && editingCoordinator && (
+                  <div className="mb-6">
+                    <form onSubmit={handleEditCoordinator} className="space-y-4">
+                      <input
+                        type="text"
+                        placeholder="Coordinator Name"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+                        value={editingCoordinator.name}
+                        onChange={(e) => setEditingCoordinator({ ...editingCoordinator, name: e.target.value })}
+                        required
+                      />
+                      <input
+                        type="number"
+                        placeholder="Priority Number (0-100)"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+                        value={editingCoordinator.priority}
+                        onChange={(e) => setEditingCoordinator({ ...editingCoordinator, priority: parseInt(e.target.value) || 0 })}
+                        min="0"
+                        max="100"
+                      />
+                      <textarea
+                        placeholder="Additional Information"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white h-24"
+                        value={editingCoordinator.info}
+                        onChange={(e) => setEditingCoordinator({ ...editingCoordinator, info: e.target.value })}
+                        required
+                      />
+                      <div className="flex justify-end space-x-4">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            setShowEditCoordinator(false);
+                            setEditingCoordinator(null);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit">Update Coordinator</Button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {coordinatorStudents.map((coordinator) => (
+                    <div
+                      key={coordinator.id}
+                      className="bg-gray-700 rounded-lg p-6 border border-gray-600"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-bold mb-2 text-white">{coordinator.name}</h3>
+                          <p className="text-gray-300 mb-2">{coordinator.info}</p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            className="text-gray-300 hover:text-white border-gray-600"
+                            onClick={() => startEditCoordinator(coordinator)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="text-gray-300 hover:text-white"
+                            onClick={() => handleDeleteCoordinator(coordinator.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
