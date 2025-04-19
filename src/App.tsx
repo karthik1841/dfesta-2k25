@@ -10,7 +10,6 @@ import CourseDetail from './pages/CourseDetail';
 import BlogDetail from './pages/BlogDetail';
 import AdminDashboard from './pages/AdminDashboard';
 import Profile from './pages/Profile';
-import CourseDetails2 from './pages/CourseDetails2';
 
 import { useEffect, useState } from 'react';
 import { auth, db } from './lib/firebase';
@@ -73,8 +72,6 @@ function App() {
             <Route path="/services/:id" element={<BlogDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/profile" element={<Profile />} />
-
-            <Route path="/course-details-2" element={<CourseDetails2 />} />
             <Route
               path="/admin"
               element={isAdmin ? <AdminDashboard /> : <div>Not Authorized</div>}

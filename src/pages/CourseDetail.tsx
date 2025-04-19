@@ -1,143 +1,202 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { ArrowLeft, Calendar, Users, DollarSign, Globe, User } from 'lucide-react';
+import toast from 'react-hot-toast';
 
-// Define the interface directly in this file
-interface Courses {
+interface Program {
+  id: string;
   title: string;
-  imageUrl: string;
-  aboutCourse?: string;
-  description?: string;
-  price: string | number;
+  description: string;
+  price: string;
   category: string;
   websiteLink: string;
+  imageUrl: string;
+  studentCoordinator: string;
+  facultyCoordinator: string;
+  createdAt?: string;
+  createdBy?: string;
 }
 
 export default function CourseDetail() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
-  const initialCourse = location.state?.course as Courses | null;
-
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [program, setProgram] = useState<Program | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"about">("about");
-  const [course, setCourse] = useState<Courses | null>(initialCourse);
 
   useEffect(() => {
-    if (!initialCourse) {
-      navigate("/programs");
-    } else {
-      setCourse(initialCourse);
-      setLoading(false);
-    }
-  }, [initialCourse, navigate]);
+    const fetchData = async () => {
+      try {
+        if (id) {
+          // Fetch single program
+          const programRef = doc(db, 'programs', id);
+          const programSnap = await getDoc(programRef);
+
+          if (programSnap.exists()) {
+            setProgram({
+              id: programSnap.id,
+              ...programSnap.data()
+            } as Program);
+          } else {
+            toast.error('Program not found');
+            navigate('/projects');
+          }
+        } else {
+          // Fetch all programs
+          const programsRef = collection(db, 'programs');
+          const programsSnap = await getDocs(programsRef);
+          const programsData = programsSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          })) as Program[];
+          setPrograms(programsData);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast.error('Failed to fetch data');
+        if (id) {
+          navigate('/projects');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id, navigate]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+      <div className="min-h-screen bg-[#0d1219] pt-16 flex items-center justify-center">
+        <div className="text-orange-500 text-xl">Loading...</div>
       </div>
     );
   }
 
-  if (!course) {
+  if (id && program) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">event not found</h2>
-          <Button
-            onClick={() => navigate("/programs")}
-            className="bg-orange-500 hover:bg-orange-600 text-gray-900"
+      <div className="min-h-screen bg-[#0d1219] pt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            Return to Programs
-          </Button>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/projects')}
+              className="mb-6 text-gray-300 hover:text-white"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Programs
+            </Button>
+
+            <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  {program.imageUrl && (
+                    <img
+                      src={program.imageUrl}
+                      alt={program.title}
+                      className="w-full h-64 object-cover rounded-lg mb-6"
+                    />
+                  )}
+                  <h1 className="text-3xl font-bold text-white mb-4">{program.title}</h1>
+                  <p className="text-gray-300 mb-6">{program.description}</p>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="bg-gray-700 p-4 rounded-lg">
+                    <h2 className="text-xl font-semibold text-orange-400 mb-4">Program Details</h2>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-start">
+                        <Calendar className="w-5 h-5 text-orange-400 mr-3 mt-1" />
+                        <div>
+                          <h3 className="text-lg font-semibold text-orange-400 mb-1">Category</h3>
+                          <p className="text-gray-300">{program.category}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start">
+                        <DollarSign className="w-5 h-5 text-orange-400 mr-3 mt-1" />
+                        <div>
+                          <h3 className="text-lg font-semibold text-orange-400 mb-1">Price</h3>
+                          <p className="text-gray-300">{program.price}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start">
+                        <User className="w-5 h-5 text-orange-400 mr-3 mt-1" />
+                        <div>
+                          <h3 className="text-lg font-semibold text-orange-400 mb-1">Student Coordinator</h3>
+                          <p className="text-gray-300">{program.studentCoordinator}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start">
+                        <Users className="w-5 h-5 text-orange-400 mr-3 mt-1" />
+                        <div>
+                          <h3 className="text-lg font-semibold text-orange-400 mb-1">Faculty Coordinator</h3>
+                          <p className="text-gray-300">{program.facultyCoordinator}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                    onClick={() => {
+                      if (program.websiteLink) {
+                        window.open(program.websiteLink, '_blank', 'noopener,noreferrer');
+                      } else {
+                        toast.error('No registration link available');
+                      }
+                    }}
+                  >
+                    Register Now
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="py-12 bg-gray-900 min-h-screen">
-      <div className="max-w-6xl lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <motion.div
-            className="relative z-10 bg-gray-800 text-white rounded-xl shadow-lg p-6 mb-4 
-                      max-w-4xl lg:max-w-full mx-auto lg:w-full text-center border border-orange-500"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h1 className="text-3xl md:text-4xl font-bold">{course.title}</h1>
-          </motion.div>
-
-          <div className="relative h-80 md:h-[450px] lg:h-[500px] xl:h-[550px] rounded-xl overflow-hidden mb-8">
-            <img
-              src={course.imageUrl}
-              alt={course.title}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = '/fallback-image.jpg';
-              }}
-            />
-          </div>
-
-          <div className="flex space-x-4 mb-8 overflow-x-auto">
-            <Button
-              variant={activeTab === "about" ? "default" : "ghost"}
-              onClick={() => setActiveTab("about")}
-              className={`${
-                activeTab === "about"
-                  ? "bg-orange-500 text-gray-900 hover:bg-orange-600"
-                  : "text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700"
-              }`}
+    <div className="min-h-screen bg-[#0d1219] pt-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-3xl font-bold text-white mb-8">All Programs</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {programs.map((program) => (
+            <motion.div
+              key={program.id}
+              whileHover={{ y: -5 }}
+              className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700 cursor-pointer"
+              onClick={() => navigate(`/projects/${program.id}`)}
             >
-              About
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-              {activeTab === "about" && (
-                <motion.div
-                  className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700
-                            hover:border-orange-500/50 transition-colors duration-300"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <h2 className="text-2xl font-bold mb-4 text-orange-400">About This Event</h2>
-                  <p className="text-gray-300 mb-6">{course.aboutCourse || course.description}</p>
-                  <p className="text-gray-300 mb-6">Price: {course.price}</p>
-                  <p className="text-gray-300 mb-6">Category: {course.category}</p>
-                </motion.div>
+              {program.imageUrl && (
+                <img
+                  src={program.imageUrl}
+                  alt={program.title}
+                  className="w-full h-48 object-cover rounded-lg mb-4"
+                />
               )}
-            </div>
-
-            <div className="lg:col-span-1">
-              <motion.div
-                className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700
-                          sticky top-4 hover:border-orange-500/50 transition-colors duration-300"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <h3 className="text-xl font-semibold text-orange-400 mb-4">Register Now</h3>
-                <p className="text-gray-300 mb-6">Join this event</p>
-                <Button
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-gray-900"
-                  onClick={() => window.open(course.websiteLink, "_blank", "noopener,noreferrer")}
-                  disabled={!course.websiteLink}
-                >
-                  Register for event
-                </Button>
-              </motion.div>
-            </div>
-          </div>
-        </motion.div>
+              <h2 className="text-xl font-bold text-white mb-2">{program.title}</h2>
+              <p className="text-gray-300 mb-4 line-clamp-2">{program.description}</p>
+              <div className="flex justify-between items-center">
+                <span className="text-orange-400 font-semibold">{program.price}</span>
+                <span className="text-gray-400">{program.category}</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );

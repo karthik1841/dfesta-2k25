@@ -24,6 +24,8 @@ interface Program {
   category: string;
   websiteLink: string;
   imageUrl: string;
+  studentCoordinator: string;
+  facultyCoordinator: string;
   createdAt?: string;
   createdBy?: string;
 }
@@ -62,7 +64,9 @@ export default function AdminDashboard() {
     price: '',
     category: '',
     websiteLink: '',
-    imageUrl: ''
+    imageUrl: '',
+    studentCoordinator: '',
+    facultyCoordinator: ''
   });
   const [editingProgram, setEditingProgram] = useState<Program | null>(null);
   const [showEditProgram, setShowEditProgram] = useState<boolean>(false);
@@ -214,7 +218,9 @@ export default function AdminDashboard() {
         price: '',
         category: '',
         websiteLink: '',
-        imageUrl: ''
+        imageUrl: '',
+        studentCoordinator: '',
+        facultyCoordinator: ''
       });
       fetchPrograms();
     } catch (error) {
@@ -671,6 +677,22 @@ export default function AdminDashboard() {
                         onChange={(e) => setNewProgram({ ...newProgram, price: e.target.value })}
                         required
                       />
+                      <input
+                        type="text"
+                        placeholder="Student Coordinator"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400"
+                        value={newProgram.studentCoordinator}
+                        onChange={(e) => setNewProgram({ ...newProgram, studentCoordinator: e.target.value })}
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Faculty Coordinator"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400"
+                        value={newProgram.facultyCoordinator}
+                        onChange={(e) => setNewProgram({ ...newProgram, facultyCoordinator: e.target.value })}
+                        required
+                      />
                       <div className="flex justify-end space-x-4">
                         <Button
                           type="button"
@@ -737,6 +759,22 @@ export default function AdminDashboard() {
                         onChange={(e) => setEditingProgram({ ...editingProgram, price: e.target.value })}
                         required
                       />
+                      <input
+                        type="text"
+                        placeholder="Student Coordinator"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400"
+                        value={editingProgram.studentCoordinator}
+                        onChange={(e) => setEditingProgram({ ...editingProgram, studentCoordinator: e.target.value })}
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Faculty Coordinator"
+                        className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400"
+                        value={editingProgram.facultyCoordinator}
+                        onChange={(e) => setEditingProgram({ ...editingProgram, facultyCoordinator: e.target.value })}
+                        required
+                      />
                       <div className="flex justify-end space-x-4">
                         <Button
                           type="button"
@@ -767,6 +805,8 @@ export default function AdminDashboard() {
                       <h3 className="text-lg font-bold mb-2 text-white">{program.title}</h3>
                       <p className="text-gray-300 mb-4">{program.description}</p>
                       <p className="text-gray-300 mb-4">Category: {program.category}</p>
+                      <p className="text-gray-300 mb-4">Student Coordinator: {program.studentCoordinator}</p>
+                      <p className="text-gray-300 mb-4">Faculty Coordinator: {program.facultyCoordinator}</p>
                       <p className="text-gray-300 mb-4">
                         Website: <a href={program.websiteLink} target="_blank" rel="noopener noreferrer">{program.websiteLink}</a>
                       </p>
