@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate, useParams } from "react-router-dom";
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { ArrowLeft, Calendar, Users, DollarSign, Globe, User } from 'lucide-react';
+import { ArrowLeft, Calendar, Users, DollarSign,  User } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Program {
