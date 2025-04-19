@@ -25,17 +25,21 @@ export default function Navbar({ isAdmin }: { isAdmin: boolean }) {
     return () => unsubscribe();
   }, []);
 
-  // Auto-close menu when clicking anywhere inside the navbar
+  // Auto-close menu when clicking outside
   useEffect(() => {
-    const handleClick = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent) => {
       if (isOpen && mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
+
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
 
   const handleSignOut = async () => {
     try {
@@ -138,8 +142,9 @@ export default function Navbar({ isAdmin }: { isAdmin: boolean }) {
 
           <motion.button
             whileTap={{ scale: 0.95 }}
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={toggleMenu}
             className="md:hidden text-gray-300 hover:text-orange-500 transition-colors focus:outline-none"
+            aria-label="Toggle menu"
           >
             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </motion.button>
@@ -168,7 +173,6 @@ export default function Navbar({ isAdmin }: { isAdmin: boolean }) {
                   </Link>
                 </motion.div>
               ))}
-             
             </div>
           </motion.div>
         )}
