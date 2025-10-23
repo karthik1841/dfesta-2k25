@@ -5,6 +5,9 @@ The **College Department Event Management System** is a web-based application de
 It helps administrators, faculty, and students efficiently handle event planning, registration, announcements, and result tracking — all in one place.
 
 ---
+<img width="1888" height="880" alt="Screenshot 2025-10-23 224827" src="https://github.com/user-attachments/assets/fa5aba76-9111-4e0f-9d0d-552ce85e4de5" />
+<img width="1894" height="877" alt="Screenshot 2025-10-23 224852" src="https://github.com/user-attachments/assets/a97dd84b-3c90-484e-9bc1-26a3e6571615" />
+<img width="1895" height="879" alt="Screenshot 2025-10-23 224909" src="https://github.com/user-attachments/assets/d34de146-39a3-4582-bafb-c7755dbf4d40" />
 <img width="1902" height="864" alt="Screenshot 2025-10-23 224924" src="https://github.com/user-attachments/assets/20bf30d3-072c-4c6a-a328-8f5cecf28f60" />
 
 
