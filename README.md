@@ -4,6 +4,8 @@
 The **College Department Event Management System** is a web-based application designed to simplify and automate the process of managing events within a college department.  
 It helps administrators, faculty, and students efficiently handle event planning, registration, announcements, and result tracking — all in one place.
 
+website link : https://dfesta.in/
+
 ---
 <img width="1888" height="880" alt="Screenshot 2025-10-23 224827" src="https://github.com/user-attachments/assets/fa5aba76-9111-4e0f-9d0d-552ce85e4de5" />
 <img width="1894" height="877" alt="Screenshot 2025-10-23 224852" src="https://github.com/user-attachments/assets/a97dd84b-3c90-484e-9bc1-26a3e6571615" />
